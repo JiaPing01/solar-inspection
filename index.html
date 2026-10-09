@@ -606,12 +606,14 @@ select {
    ===================================================== */
 .filter-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:
+    1fr 1fr;
   gap: 8px;
 }
 .measure-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:
+    1fr 1fr;
   gap: 8px;
 }
 /* =====================================================
@@ -623,7 +625,8 @@ select {
   left: 0;
   right: 0;
   min-height: 68px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom:
+    env(safe-area-inset-bottom);
   background: rgba(255,255,255,.97);
   border-top: 1px solid #ddd;
   display: flex;
@@ -648,6 +651,55 @@ select {
   line-height: 1.1;
   margin-bottom: 2px;
 }
+/* =====================================================
+   Background Upload Status Badge (右上方浮動指示器)
+   ===================================================== */
+.sync-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.sync-badge.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+.sync-badge.syncing {
+  background: rgba(34, 34, 34, 0.88);
+  color: #fff;
+}
+.sync-badge.success {
+  background: rgba(226, 243, 231, 0.95);
+  color: #176b35;
+  border: 1px solid #b3e6c3;
+}
+.sync-badge.error {
+  background: rgba(255, 225, 225, 0.95);
+  color: #a51d16;
+  border: 1px solid #ffb3b3;
+}
+.sync-spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: loading-spin .8s linear infinite;
+}
+
 /* =====================================================
    Global Loading Overlay
    ===================================================== */
@@ -707,36 +759,6 @@ select {
   text-align: left;
   animation: loading-dots 1.25s steps(4, end) infinite;
 }
-/* =====================================================
-   Sync Toast (背景上傳進度)
-   ===================================================== */
-.sync-toast {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 30px;
-  font-size: 14px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: opacity 0.3s;
-}
-.sync-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid #555;
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: loading-spin .8s linear infinite;
-}
-
 @keyframes loading-spin {
   to { transform: rotate(360deg); }
 }
@@ -747,26 +769,56 @@ select {
   75%, 100% { content: '...'; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .loading-spinner, .sync-spinner, .loading-dots::after { animation-duration: 2.5s; }
+  .loading-spinner, .loading-dots::after { animation-duration: 2.5s; }
   #loadingOverlay { transition: none; }
 }
+
+/* =====================================================
+   Responsive
+   ===================================================== */
 @media (min-width: 700px) {
-  body { padding-bottom: 0; }
-  .page { max-width: 600px; padding: 24px 20px; }
-  .bottom-nav { max-width: 600px; left: 50%; right: auto; transform: translateX(-50%); border-left: 1px solid #ddd; border-right: 1px solid #ddd; border-radius: 16px 16px 0 0; }
+  body {
+    padding-bottom: 0;
+  }
+  .page {
+    max-width: 600px;
+    padding: 24px 20px;
+  }
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-radius: 16px 16px 0 0;
+  }
 }
+/* =====================================================
+   Small Phone
+   ===================================================== */
 @media (max-width: 360px) {
-  .page { padding-left: 13px; padding-right: 13px; }
-  .result-btn { font-size: 14px; }
-  .menu-title { font-size: 16px; }
+  .page {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .result-btn {
+    font-size: 14px;
+  }
+  .menu-title {
+    font-size: 16px;
+  }
 }
 </style>
 </head>
 <body>
 <div id="app"></div>
 
-<!-- 背景同步提示 -->
-<div id="sync-toast" class="sync-toast" style="display:none;"></div>
+<!-- 背景同步進度指示器 -->
+<div id="bgSyncBadge" class="sync-badge hidden" onclick="handleBadgeClick()">
+  <span id="syncIcon" class="sync-spinner-small"></span>
+  <span id="syncText">同步中...</span>
+</div>
 
 <!-- 頁面初始載入遮罩 -->
 <div id="loadingOverlay" role="status" aria-live="polite" aria-atomic="true">
@@ -776,12 +828,26 @@ select {
     <div id="loadingMessage" class="loading-message">正在連線並載入巡檢資料<span class="loading-dots"></span></div>
   </div>
 </div>
-<div id="bottomNav" class="bottom-nav" style="display:none">
-  <button class="nav-btn" onclick="showHome()"><span class="nav-icon">⌂</span>首頁</button>
-  <button class="nav-btn" onclick="showPoints()"><span class="nav-icon">✓</span>檢核</button>
-  <button class="nav-btn" onclick="showHistory()"><span class="nav-icon">☷</span>記錄</button>
-</div>
 
+<div id="bottomNav"
+class="bottom-nav"
+style="display:none">
+<button class="nav-btn"
+onclick="showHome()">
+<span class="nav-icon">⌂</span>
+首頁
+</button>
+<button class="nav-btn"
+onclick="showPoints()">
+<span class="nav-icon">✓</span>
+檢核
+</button>
+<button class="nav-btn"
+onclick="showHistory()">
+<span class="nav-icon">☷</span>
+記錄
+</button>
+</div>
 <script>
 let inspectors = [];
 let points = [];
@@ -796,9 +862,86 @@ let openIssues = [];
 let issueReviews = {};
 let currentPhoto = null;
 
-// Background Sync Queue State
-let syncQueue = [];
-let isSyncing = false;
+/* =====================================================
+   Background Upload Queue Engine (背景佇列引擎)
+   ===================================================== */
+let uploadQueue = JSON.parse(localStorage.getItem('pv_upload_queue') || '[]');
+let isProcessingQueue = false;
+
+function saveQueueToStorage() {
+  localStorage.setItem('pv_upload_queue', JSON.stringify(uploadQueue));
+}
+
+function updateSyncUI() {
+  const badge = document.getElementById('bgSyncBadge');
+  const icon = document.getElementById('syncIcon');
+  const text = document.getElementById('syncText');
+  if (!badge) return;
+
+  if (uploadQueue.length === 0) {
+    if (badge.classList.contains('syncing')) {
+      badge.className = 'sync-badge success';
+      icon.innerHTML = '✓';
+      text.textContent = '資料已全部同步';
+      setTimeout(() => {
+        if (uploadQueue.length === 0) badge.classList.add('hidden');
+      }, 2500);
+    } else {
+      badge.classList.add('hidden');
+    }
+    return;
+  }
+
+  badge.classList.remove('hidden');
+  const hasError = uploadQueue.some(q => q.failed);
+  if (hasError && !isProcessingQueue) {
+    badge.className = 'sync-badge error';
+    icon.innerHTML = '⚠';
+    text.textContent = `待同步 (${uploadQueue.length}) 點擊重傳`;
+  } else {
+    badge.className = 'sync-badge syncing';
+    icon.className = 'sync-spinner-small';
+    icon.innerHTML = '';
+    text.textContent = `背景同步中 (${uploadQueue.length})`;
+  }
+}
+
+async function processQueue() {
+  if (isProcessingQueue || uploadQueue.length === 0) {
+    updateSyncUI();
+    return;
+  }
+  isProcessingQueue = true;
+  updateSyncUI();
+
+  while (uploadQueue.length > 0) {
+    const item = uploadQueue[0];
+    try {
+      // isBackground = true，避開全螢幕 Loading 畫面
+      await runServer('saveInspection', item.payload, true);
+      uploadQueue.shift(); // 傳送成功，移除隊列
+      saveQueueToStorage();
+      updateSyncUI();
+    } catch (err) {
+      console.error('背景上傳失敗，等待重試：', err);
+      item.failed = true;
+      saveQueueToStorage();
+      break; // 發生網路錯誤，中斷迴圈等待手動重試或網路復原
+    }
+  }
+
+  isProcessingQueue = false;
+  updateSyncUI();
+}
+
+function handleBadgeClick() {
+  const hasError = uploadQueue.some(q => q.failed);
+  if (hasError) {
+    uploadQueue.forEach(q => delete q.failed);
+    saveQueueToStorage();
+    processQueue();
+  }
+}
 
 /* =====================================================
    Scanner State
@@ -810,6 +953,10 @@ let qrDetector = null;
 let qrScannerRunning = false;
 let qrAnimationFrame = null;
 let useNativeBarcodeDetector = false;
+
+/* =====================================================
+   Global Loading State
+   ===================================================== */
 let loadingCount = 0;
 let initialLoading = true;
 let loadingMessageText = '正在載入資料';
@@ -825,97 +972,61 @@ function renderLoadingState() {
   overlay.classList.toggle('is-hidden', !shouldShow);
   overlay.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
 }
+
 function showLoading(message = '正在載入資料') {
   loadingCount++;
   loadingMessageText = message;
   renderLoadingState();
 }
+
 function hideLoading() {
   loadingCount = Math.max(0, loadingCount - 1);
   renderLoadingState();
 }
+
 function finishInitialLoading() {
   initialLoading = false;
   renderLoadingState();
 }
 
+/* =====================================================
+   Server Communication
+   ===================================================== */
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbySwcWW5i0s9LJOJWSah51PNDZ7fzGTh_qvxZPk3jks3uT_FgHjVP1BVLSufqalRkQDbg/exec';
 
-async function runServer(name, ...args) {
-  showLoading('正在與巡檢系統連線');
+async function runServer(name, args = [], isBackground = false) {
+  if (!Array.isArray(args)) args = [args];
+  if (!isBackground) showLoading('正在與巡檢系統連線');
+
   try {
-    const response = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: name, args })
-    });
-    const payload = await response.json();
-    if (!payload.success) throw new Error(payload.error || '巡檢 API 執行失敗');
-    return payload.data;
-  } finally {
-    hideLoading();
-  }
-}
-
-/* =====================================================
-   背景佇列同步功能 (Background Queue)
-   ===================================================== */
-function updateSyncUI() {
-  const toast = document.getElementById('sync-toast');
-  if (syncQueue.length > 0) {
-    toast.style.display = 'flex';
-    toast.innerHTML = `<div class="sync-spinner"></div> 背景上傳中... 剩餘 ${syncQueue.length} 筆`;
-  } else {
-    toast.innerHTML = `✅ 上傳完成`;
-    setTimeout(() => {
-      if(syncQueue.length === 0) toast.style.display = 'none';
-    }, 2500);
-  }
-}
-
-async function processQueue() {
-  if (isSyncing || syncQueue.length === 0) return;
-  isSyncing = true;
-  updateSyncUI();
-
-  while (syncQueue.length > 0) {
-    const task = syncQueue[0];
+    let response;
     try {
-      // 這裡直接使用 fetch，不觸發原先的 showLoading 畫面，實現無感上傳
-      const response = await fetch(GAS_API_URL, {
+      response = await fetch(GAS_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: task.action, args: task.args })
+        body: JSON.stringify({ action: name, args })
       });
-      const payload = await response.json();
-      if (!payload.success) throw new Error(payload.error);
-      
-      // 成功後移除該任務
-      syncQueue.shift();
-      updateSyncUI();
-
-      // 當最後一筆成功後，順手默默把最新狀態從伺服器拉下來更新一下
-      if (syncQueue.length === 0) {
-        refreshDashboardBackground();
-      }
     } catch (error) {
-      console.error('背景同步失敗:', error);
-      document.getElementById('sync-toast').innerHTML = `⚠️ 網路不穩，稍後自動重試...`;
-      await new Promise(r => setTimeout(r, 5000)); // 失敗等五秒再試
+      throw new Error(
+        '無法連線到巡檢 API。原始錯誤：' + (error?.message || error)
+      );
     }
+    if (!response.ok) {
+      throw new Error('巡檢 API 回應 HTTP ' + response.status);
+    }
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error('API 回應不是有效 JSON');
+    }
+    if (!payload.success) {
+      throw new Error(payload.error || '巡檢 API 執行失敗');
+    }
+    return payload.data;
+  } finally {
+    if (!isBackground) hideLoading();
   }
-  isSyncing = false;
-  updateSyncUI();
-}
-
-function refreshDashboardBackground() {
-  fetch(GAS_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: 'getDashboardData', args: [] })
-  }).then(r => r.json()).then(p => {
-    if (p.success) dashboard = p.data;
-  }).catch(e => console.error("背景更新 Dashboard 失敗", e));
 }
 
 /* =====================================================
@@ -924,25 +1035,30 @@ function refreshDashboardBackground() {
 async function init() {
   try {
     await runServer('setupSystem');
-    const data = await Promise.all([
-      runServer('getInspectors'),
-      runServer('getPoints'),
-      runServer('getDashboardData'),
-      runServer('getTodayInspections')
-    ]);
+    const data =
+      await Promise.all([
+        runServer('getInspectors'),
+        runServer('getPoints'),
+        runServer('getDashboardData'),
+        runServer('getTodayInspections')
+      ]);
     inspectors = data[0];
     points = data[1];
     dashboard = data[2];
     todayInspections = data[3];
-    finishInitialLoading();
-
     const saved = sessionStorage.getItem('currentInspector');
     if (saved) {
       try {
         const user = JSON.parse(saved);
         currentInspector = inspectors.find(x => String(x.inspectorID) === String(user.inspectorID));
-      } catch (e) { currentInspector = null; }
+      } catch (e) {
+        currentInspector = null;
+      }
     }
+    
+    // 初始化背景上傳佇列
+    processQueue();
+
     if (currentInspector) {
       showApp();
     } else {
@@ -953,48 +1069,28 @@ async function init() {
   }
 }
 
-function app(html) {
-  document.getElementById('app').innerHTML = html;
-  window.scrollTo(0, 0);
-}
-function bottom(show) {
-  document.getElementById('bottomNav').style.display = show ? 'flex' : 'none';
-}
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-function escJS(str) {
-  if (!str) return '';
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-}
-function showError(error) {
-  hideLoading();
-  app(`
-    <div class="page" style="text-align:center;padding-top:40px">
-      <div style="font-size:50px;margin-bottom:20px">⚠️</div>
-      <div style="color:#a51d16;font-weight:700;margin-bottom:10px">系統發生錯誤</div>
-      <div style="color:#666">${esc(error && error.message ? error.message : error)}</div>
-      <button class="primary-btn" style="margin-top:20px" onclick="location.reload()">重新載入</button>
-    </div>
-  `);
-}
-
+/* =====================================================
+   Inspector
+   ===================================================== */
 function showInspectorSelection() {
   bottom(false);
   let html = `
   <div class="page user-page">
     <div class="user-title">誰要進行巡檢？</div>
-    <div class="user-subtitle">請選擇本次簽核者</div>`;
+    <div class="user-subtitle">請選擇本次簽核者</div>
+  `;
   inspectors.forEach(user => {
     html += `
     <button class="user-card" onclick="selectInspector('${escJS(user.inspectorID)}')">
-      <div class="avatar">${user.avatar ? `<img src="${esc(user.avatar)}">` : '👤'}</div>
+      <div class="avatar">
+        ${user.avatar ? `<img src="${esc(user.avatar)}">` : '👤'}
+      </div>
       <div>
         <div class="user-name">${esc(user.name)}</div>
         <div class="user-permission">${esc(user.permission || 'Inspector')}</div>
       </div>
-    </button>`;
+    </button>
+    `;
   });
   if (!inspectors.length) {
     html += `<div class="card">尚未建立任何啟用中的簽核者。</div>`;
@@ -1016,6 +1112,9 @@ function switchInspector() {
   showInspectorSelection();
 }
 
+/* =====================================================
+   Main
+   ===================================================== */
 function showApp() {
   bottom(true);
   showHome();
@@ -1025,26 +1124,26 @@ function renderUserHeader() {
   return `
   <div class="user-header">
     <div class="current-user">
-      <div class="small-avatar">${currentInspector.avatar ? `<img src="${esc(currentInspector.avatar)}">` : '👤'}</div>
+      <div class="small-avatar">
+        ${currentInspector.avatar ? `<img src="${esc(currentInspector.avatar)}">` : '👤'}
+      </div>
       <div class="current-user-name">${esc(currentInspector.name)}</div>
     </div>
     <button class="switch-user" onclick="switchInspector()">切換</button>
-  </div>`;
+  </div>
+  `;
 }
 
 /* =====================================================
-   Home (修改為無阻擋載入)
+   Home
    ===================================================== */
 function showHome() {
   stopAllScanning();
-  // 不強制等後端回傳，直接拿現有 dashboard 資料畫畫面，同時在背景偷偷對一次答案
-  refreshDashboardBackground(); 
-
   const completed = dashboard.filter(x => x.completedToday).length;
   const total = dashboard.length;
   const remain = total - completed;
   const percent = total ? Math.round(completed / total * 100) : 0;
-  
+
   let html = `
   <div class="page">
     ${renderUserHeader()}
@@ -1072,21 +1171,39 @@ function showHome() {
         <div class="menu-description">查看應檢、逾期與已完成點位</div>
       </div>
     </button>
+    <button class="menu-card" onclick="showHistory()">
+      <div class="menu-icon">☷</div>
+      <div>
+        <div class="menu-title">檢核記錄</div>
+        <div class="menu-description">查詢歷史巡檢與量測資料</div>
+      </div>
+    </button>
+    <button class="menu-card" onclick="showIssues()">
+      <div class="menu-icon">!</div>
+      <div>
+        <div class="menu-title">異常追蹤</div>
+        <div class="menu-description">查看尚未結案的異常項目</div>
+      </div>
+    </button>
   `;
+
   if (String(currentInspector.permission).toLowerCase() === 'admin') {
     html += `
-    <button class="menu-card" onclick="alert('請實作 Admin 畫面')">
+    <button class="menu-card" onclick="showAdmin()">
       <div class="menu-icon">⚙</div>
       <div>
         <div class="menu-title">系統管理</div>
         <div class="menu-description">使用者與 Point 設定</div>
       </div>
-    </button>`;
+    </button>
+    `;
   }
+
   if (completed === total && total > 0) {
     html += `
     <div class="big-check">✓</div>
     <div style="text-align:center;color:#176b35">今日定期巡檢全部完成</div>
+    <div style="text-align:center;color:#777;margin-top:8px">仍可進行追加檢查</div>
     `;
   }
   html += `</div>`;
@@ -1094,19 +1211,25 @@ function showHome() {
 }
 
 /* =====================================================
-   Points (修改為無阻擋載入)
+   Points
    ===================================================== */
-function showPoints() {
-  stopAllScanning();
-  refreshDashboardBackground(); 
+async function refreshDashboard() {
+  dashboard = await runServer('getDashboardData');
+}
 
+async function showPoints() {
+  stopAllScanning();
   let html = `
   <div class="page">
     ${renderUserHeader()}
     <button class="back-btn" onclick="showHome()">← 返回首頁</button>
     <div class="title">進行檢核</div>
-    <div class="subtitle">今日剩餘 ${dashboard.filter(x => !x.completedToday).length} 個點位</div>
-    <button class="primary-btn" style="margin-bottom:16px" onclick="startPointScan()">📳 掃描 NFC / QR 點位</button>
+    <div class="subtitle">
+      今日剩餘 ${dashboard.filter(x => !x.completedToday).length} 個點位
+    </div>
+    <button class="primary-btn" style="margin-bottom:16px" onclick="startPointScan()">
+      📳 掃描 NFC / QR 點位
+    </button>
   `;
   dashboard.forEach(point => {
     let cls = 'status-normal';
@@ -1124,18 +1247,35 @@ function showPoints() {
         <div class="status ${cls}">${esc(point.status)}</div>
       </div>
       <div class="point-location">${esc(point.location || '')}</div>
-      <button class="point-button" onclick="selectPoint('${escJS(point.pointID)}')">${point.completedToday ? '再次檢查' : '進行檢查'}</button>
-    </div>`;
+      <div class="point-last">
+        上次檢查：${point.lastInspectionDate ? esc(point.lastInspectionDate) : '尚未檢查'}
+        ${point.dueDate ? `<br>下次應檢：${esc(point.dueDate)}` : ''}
+      </div>
+      <button class="point-button" onclick="selectPoint('${escJS(point.pointID)}')">
+        ${point.completedToday ? '再次檢查' : '進行檢查'}
+      </button>
+    </div>
+    `;
   });
   html += `</div>`;
   app(html);
 }
 
 /* =====================================================
-   (其餘原有掃描功能、表單等全數保留，在此略縮，直接接到核心送出機制)
+   Scan Choice
    ===================================================== */
-function startPointScan() { stopAllScanning(); currentPoint = null; showScanChoice(); }
-function selectPoint(id) { currentPoint = points.find(p => String(p.pointID) === String(id)); if(currentPoint) showManualPointChoice(); }
+function startPointScan() {
+  stopAllScanning();
+  currentPoint = null;
+  showScanChoice();
+}
+
+function selectPoint(id) {
+  currentPoint = points.find(p => String(p.pointID) === String(id));
+  if (!currentPoint) return;
+  showManualPointChoice();
+}
+
 function showManualPointChoice() {
   app(`
   <div class="page">
@@ -1150,34 +1290,153 @@ function showManualPointChoice() {
       <div class="scan-option-description">已從點位清單選擇此點</div>
     </button>
     <button class="secondary-btn" onclick="startPointScan()">改用 NFC / QR 掃描</button>
-  </div>`);
+  </div>
+  `);
 }
+
 function showScanChoice() {
   app(`
   <div class="page">
     <button class="back-btn" onclick="showPoints()">← 返回</button>
     <div class="scan-title">
       <div class="title">掃描巡檢點位</div>
+      <div class="scan-point">請選擇掃描方式</div>
     </div>
+    <button class="scan-option" onclick="beginScan('NFC')">
+      <div class="scan-icon">📳</div>
+      <div class="scan-option-title">NFC</div>
+      <div class="scan-option-description">主動啟動 NFC 掃描</div>
+    </button>
     <button class="scan-option" onclick="beginScan('QR')">
       <div class="scan-icon">▦</div>
       <div class="scan-option-title">QR Code</div>
-      <div class="scan-option-description">使用手機相機掃描</div>
+      <div class="scan-option-description">使用手機相機掃描 QR Code</div>
     </button>
     <button class="secondary-btn" onclick="showPoints()">改用手動選擇點位</button>
-  </div>`);
+  </div>
+  `);
 }
+
+/* =====================================================
+   Real NFC / QR Scan
+   ===================================================== */
 async function beginScan(method) {
   currentMethod = method;
   stopAllScanning();
-  if (method === 'QR') await startQRScan();
+  showLoading(method === 'NFC' ? '正在啟動 NFC 掃描' : '正在啟動相機與 QR 掃描器');
+  try {
+    if (method === 'NFC') {
+      await startNFCScan();
+      return;
+    }
+    if (method === 'QR') {
+      await startQRScan();
+      return;
+    }
+  } finally {
+    hideLoading();
+  }
 }
 
+/* =====================================================
+   NFC
+   ===================================================== */
+async function startNFCScan() {
+  if (!('NDEFReader' in window)) {
+    showScannerError('此瀏覽器不支援 Web NFC。請使用 Android Chrome，或改用 QR Code。');
+    return;
+  }
+  app(`
+  <div class="page scanner-page">
+    <button class="back-btn" onclick="showScanChoice()">← 返回</button>
+    <div class="scanner-title">NFC 掃描</div>
+    <div class="scanner-description">請將手機靠近巡檢點 NFC Tag</div>
+    <div class="card" style="text-align:center;padding:32px 18px">
+      <div style="font-size:70px">📳</div>
+      <div style="font-size:18px;font-weight:700;margin-top:15px">等待 NFC Tag</div>
+      <div id="scanner-status" class="scanner-status" style="margin-top:8px">正在啟動 NFC……</div>
+    </div>
+    <button class="secondary-btn" onclick="stopNFCScan();showScanChoice()">取消掃描</button>
+  </div>
+  `);
+  try {
+    nfcReader = new NDEFReader();
+    nfcAbortController = new AbortController();
+    nfcReader.onreadingerror = () => {
+      const el = document.getElementById('scanner-status');
+      if (el) el.textContent = '無法讀取此 NFC Tag，請重新靠近';
+    };
+    nfcReader.onreading = event => handleNFCReading(event);
+    await nfcReader.scan({ signal: nfcAbortController.signal });
+    const status = document.getElementById('scanner-status');
+    if (status) status.textContent = 'NFC 已啟動，請靠近 Tag';
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+    showScannerError('NFC 啟動失敗：' + (error.message || error));
+  }
+}
+
+function handleNFCReading(event) {
+  let pointID = null;
+  try {
+    for (const record of event.message.records) {
+      const text = decodeNFCRecord(record);
+      if (!text) continue;
+      pointID = parsePointPayload(text);
+      if (pointID) break;
+    }
+  } catch (error) {
+    showScannerError('NFC 資料解析失敗：' + error.message);
+    return;
+  }
+  if (!pointID) {
+    showScannerError('這個 NFC Tag 不是本巡檢系統的點位 Tag。');
+    return;
+  }
+  stopNFCScan();
+  openScannedPoint(pointID, 'NFC');
+}
+
+function decodeNFCRecord(record) {
+  try {
+    if (record.recordType === 'text') {
+      return new TextDecoder(record.encoding || 'utf-8').decode(record.data).trim();
+    }
+    if (record.recordType === 'url') {
+      return new TextDecoder().decode(record.data).trim();
+    }
+    if (record.recordType === 'mime' || record.recordType === 'unknown') {
+      return new TextDecoder().decode(record.data).trim();
+    }
+  } catch (error) {
+    return '';
+  }
+  return '';
+}
+
+/* =====================================================
+   QR (雙軌雙層相容版：Android 原生 + iOS jsQR)
+   ===================================================== */
 async function startQRScan() {
+  useNativeBarcodeDetector = false;
+
+  if ('BarcodeDetector' in window) {
+    try {
+      const formats = await BarcodeDetector.getSupportedFormats();
+      if (formats.includes('qr_code')) {
+        useNativeBarcodeDetector = true;
+        qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      }
+    } catch (error) {
+      useNativeBarcodeDetector = false;
+    }
+  }
+
   app(`
   <div class="page scanner-page">
     <button class="back-btn" onclick="stopQRScan();showScanChoice()">← 返回</button>
     <div class="scanner-title">QR Code 掃描</div>
+    <div class="scanner-description">將巡檢點 QR Code 放入框線內</div>
     <div class="scanner-box">
       <video id="qr-video" autoplay playsinline muted></video>
       <div class="scanner-frame"></div>
@@ -1185,36 +1444,61 @@ async function startQRScan() {
     <div id="scanner-status" class="scanner-status">正在啟動相機……</div>
     <button class="secondary-btn" onclick="stopQRScan();showScanChoice()">取消掃描</button>
     <canvas id="qr-canvas" style="display:none;"></canvas>
-  </div>`);
+  </div>
+  `);
+
   try {
-    qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+    qrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } },
+      audio: false
+    });
     const video = document.getElementById('qr-video');
+    if (!video) return;
+
     video.srcObject = qrStream;
     video.setAttribute("playsinline", "true");
     await video.play();
+
     qrScannerRunning = true;
+    const status = document.getElementById('scanner-status');
+    if (status) status.textContent = '相機已啟動，請對準 QR Code';
     scanQRFrame();
-  } catch (error) { showScannerError('相機啟動失敗'); }
+  } catch (error) {
+    showScannerError('相機啟動失敗：' + (error.message || error) + '\n\n請確認已選用允許此網站存取相機。');
+  }
 }
+
 async function scanQRFrame() {
   if (!qrScannerRunning) return;
+
   const video = document.getElementById('qr-video');
   const canvasElement = document.getElementById('qr-canvas');
+
   if (!video || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
     qrAnimationFrame = requestAnimationFrame(scanQRFrame);
     return;
   }
+
   let rawData = null;
+
   try {
-    const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
-    canvasElement.height = video.videoHeight;
-    canvasElement.width = video.videoWidth;
-    canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-    const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-    if (code) rawData = code.data;
+    if (useNativeBarcodeDetector && qrDetector) {
+      const codes = await qrDetector.detect(video);
+      if (codes.length) rawData = codes[0].rawValue;
+    } else if (typeof jsQR !== 'undefined' && canvasElement) {
+      const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
+      canvasElement.height = video.videoHeight;
+      canvasElement.width = video.videoWidth;
+      canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+      const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+      
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert"
+      });
+      if (code) rawData = code.data;
+    }
   } catch (error) {}
-  
+
   if (rawData) {
     const pointID = parsePointPayload(rawData);
     if (pointID) {
@@ -1223,31 +1507,104 @@ async function scanQRFrame() {
       return;
     }
   }
-  if (qrScannerRunning) qrAnimationFrame = requestAnimationFrame(scanQRFrame);
+
+  if (qrScannerRunning) {
+    qrAnimationFrame = requestAnimationFrame(scanQRFrame);
+  }
 }
+
+/* =====================================================
+   Payload Parser
+   ===================================================== */
 function parsePointPayload(payload) {
   if (!payload) return null;
   const text = String(payload).trim();
-  const point = points.find(p => String(p.pointID).toUpperCase() === String(text).toUpperCase());
+  const prefixMatch = text.match(/^PVINSPECT:([A-Za-z0-9_-]+)$/i);
+  if (prefixMatch) return findPointID(prefixMatch[1]);
+  if (/^[A-Za-z0-9_-]+$/.test(text)) {
+    const point = findPointID(text);
+    if (point) return point;
+  }
+  try {
+    const url = new URL(text);
+    const pointID = url.searchParams.get('point');
+    if (pointID) return findPointID(pointID);
+  } catch (error) {}
+  return null;
+}
+
+function findPointID(value) {
+  const point = points.find(p => String(p.pointID).toUpperCase() === String(value).toUpperCase());
   return point ? point.pointID : null;
 }
+
+/* =====================================================
+   Open Scanned Point
+   ===================================================== */
 function openScannedPoint(pointID, method) {
-  currentPoint = points.find(p => String(p.pointID) === String(pointID));
+  const point = points.find(p => String(p.pointID) === String(pointID));
+  if (!point) {
+    showScannerError('無法辨識 PointID：' + pointID);
+    return;
+  }
+  currentPoint = point;
   currentMethod = method;
   loadPointData();
 }
-function stopQRScan() {
-  qrScannerRunning = false;
-  if (qrAnimationFrame) cancelAnimationFrame(qrAnimationFrame);
-  if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
-}
-function stopAllScanning() { stopQRScan(); }
-function showScannerError(msg) {
-  stopAllScanning();
-  app(`<div class="page"><button class="back-btn" onclick="showScanChoice()">← 返回</button><div>${msg}</div></div>`);
+
+/* =====================================================
+   Scanner Stop
+   ===================================================== */
+function stopNFCScan() {
+  if (nfcAbortController) {
+    try { nfcAbortController.abort(); } catch (e) {}
+  }
+  nfcAbortController = null;
+  nfcReader = null;
 }
 
-function loadPointByMethod(method) { currentMethod = method; loadPointData(); }
+function stopQRScan() {
+  qrScannerRunning = false;
+  qrDetector = null;
+  useNativeBarcodeDetector = false;
+  if (qrAnimationFrame) {
+    cancelAnimationFrame(qrAnimationFrame);
+    qrAnimationFrame = null;
+  }
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
+  }
+}
+
+function stopAllScanning() {
+  stopNFCScan();
+  stopQRScan();
+}
+
+function showScannerError(message) {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    <button class="back-btn" onclick="showScanChoice()">← 返回掃描選擇</button>
+    <div class="card" style="text-align:center;padding:30px 18px">
+      <div style="font-size:55px">⚠</div>
+      <div style="font-size:19px;font-weight:700;margin-top:15px">無法啟動掃描</div>
+      <div style="white-space:pre-line;color:#777;margin-top:10px">${esc(message)}</div>
+    </div>
+    <button class="primary-btn" onclick="showScanChoice()">重新選擇掃描方式</button>
+  </div>
+  `);
+}
+
+/* =====================================================
+   Manual / Point Data
+   ===================================================== */
+function loadPointByMethod(method) {
+  currentMethod = method;
+  loadPointData();
+}
+
 async function loadPointData() {
   try {
     checklist = await runServer('getChecklist', currentPoint.pointID);
@@ -1256,16 +1613,49 @@ async function loadPointData() {
     issueReviews = {};
     currentPhoto = null;
     showChecklist();
-  } catch (error) { showError(error); }
+  } catch (error) {
+    showError(error);
+  }
 }
 
+/* =====================================================
+   Checklist
+   ===================================================== */
 function showChecklist() {
+  stopAllScanning();
   let html = `
   <div class="page">
     <button class="back-btn" onclick="showPoints()">← 返回點位</button>
     <div class="title">${esc(currentPoint.name)}</div>
-    <div class="section-title">Checklist</div>`;
-    
+    <div class="subtitle">${esc(currentPoint.pointID)} ｜${esc(currentMethod)}</div>
+  `;
+  if (openIssues.length) {
+    html += `<div class="section-title">待追蹤異常</div>`;
+    openIssues.forEach(issue => {
+      html += `
+      <div class="issue-card">
+        <div class="issue-title">${esc(issue.abnormalStatus)} ｜${esc(issue.itemID)}</div>
+        <div>${esc(issue.content)}</div>
+        <div class="issue-meta">
+          發現：${esc(issue.foundDate)}<br>
+          一週後覆核：${esc(issue.weeklyReviewDate)}<br>
+          下次定檢覆核：${esc(issue.regularReviewDate)}<br>
+          狀態：${esc(issue.status)}
+        </div>
+        <div class="review-row">
+          <select class="review-select" onchange="setIssueReview('${escJS(issue.issueID)}', this.value)">
+            <option value="">本次尚未覆核</option>
+            <option value="已改善">已改善</option>
+            <option value="維持原狀">維持原狀</option>
+            <option value="惡化">惡化</option>
+          </select>
+          <input class="note-box" id="review-note-${esc(issue.issueID)}" placeholder="覆核備註">
+        </div>
+      </div>
+      `;
+    });
+  }
+  html += `<div class="section-title">Checklist</div>`;
   checklist.forEach((item, i) => {
     html += `
     <div class="check-item">
@@ -1276,99 +1666,459 @@ function showChecklist() {
         <button id="ng-${esc(item.itemID)}" class="result-btn" onclick="setResult('${escJS(item.itemID)}', 'NG')">✕ NG</button>
       </div>
       <div id="note-${esc(item.itemID)}"></div>
-    </div>`;
+    </div>
+    `;
   });
-  
+
   html += `
-    <button id="submitBtn" class="primary-btn" onclick="submitInspection(this)">🚀 送出完成巡檢</button>
-  </div>`;
+  <div class="section-title">量測資料</div>
+  <div class="card">
+    <div class="measure-grid">
+      <input id="m-pv" class="measure-input" type="number" step="0.01" placeholder="PV 電壓 V">
+      <input id="m-diode" class="measure-input" type="number" step="0.01" placeholder="二極體後 V">
+      <input id="m-bypass" class="measure-input" type="number" step="0.01" placeholder="Bypass 後 V">
+      <input id="m-current" class="measure-input" type="number" step="0.01" placeholder="負載電流 A">
+      <input id="m-power" class="measure-input" type="number" step="0.01" placeholder="輸出功率 W">
+      <input id="m-temp" class="measure-input" type="number" step="0.1" placeholder="控制器溫度 °C">
+    </div>
+    <select id="m-weather" class="measure-input">
+      <option value="">天氣狀況</option>
+      <option>晴天</option>
+      <option>多雲</option>
+      <option>陰天</option>
+      <option>雨天</option>
+      <option>其他</option>
+    </select>
+  </div>
+  <div class="section-title">現場照片</div>
+  <div class="photo-box">
+    <input id="photo" type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+    <div id="photo-preview"></div>
+  </div>
+  <div class="section-title">檢查類型</div>
+  <div class="card">
+    <select id="inspection-type" class="measure-input" onchange="toggleAdditionalReason()">
+      <option value="定期">定期檢查</option>
+      <option value="追加">追加檢查</option>
+      <option value="異常覆核">異常覆核</option>
+    </select>
+    <div id="additional-reason-area" style="display:none">
+      <input id="additional-reason" class="measure-input" placeholder="請填寫追加檢查原因">
+    </div>
+  </div>
+  <div style="margin-top:22px">
+    <button id="submit-btn" class="primary-btn" onclick="submitInspection()">完成此次檢查</button>
+  </div>
+  </div>
+  `;
   app(html);
 }
 
-function setResult(itemID, val) {
-  results[itemID] = val;
-  const item = checklist.find(x => x.itemID === itemID);
-  ['ok','attention','ng'].forEach(type => {
+/* =====================================================
+   Results
+   ===================================================== */
+function setResult(itemID, result) {
+  results[itemID] = { result, note: '', reviewed: false };
+  ['ok', 'attention', 'ng'].forEach(type => {
     const el = document.getElementById(`${type}-${itemID}`);
-    if(el) {
-      el.classList.remove('selected-ok', 'selected-attention', 'selected-ng');
-      if (val === 'OK' && type === 'ok') el.classList.add('selected-ok');
-      if (val === '注意' && type === 'attention') el.classList.add('selected-attention');
-      if (val === 'NG' && type === 'ng') el.classList.add('selected-ng');
-    }
+    if (el) el.className = 'result-btn';
   });
+  if (result === 'OK') document.getElementById(`ok-${itemID}`).className += ' selected-ok';
+  if (result === '注意') document.getElementById(`attention-${itemID}`).className += ' selected-attention';
+  if (result === 'NG') document.getElementById(`ng-${itemID}`).className += ' selected-ng';
+
+  const box = document.getElementById(`note-${itemID}`);
+  if (result === 'OK') {
+    box.innerHTML = '';
+  } else {
+    box.innerHTML = `<textarea id="note-input-${esc(itemID)}" class="note-box" placeholder="請填寫異常狀況或備註"></textarea>`;
+  }
+}
+
+function setIssueReview(issueID, result) {
+  if (!result) {
+    delete issueReviews[issueID];
+    return;
+  }
+  issueReviews[issueID] = { issueID, result, close: false, note: '' };
 }
 
 /* =====================================================
-   核心改動：送出巡檢 (非同步 + 樂觀 UI)
+   Photo Tools & Compress (前端自動圖片壓縮)
    ===================================================== */
-async function submitInspection(btn) {
-  // 檢查所有項目是否都已填寫
-  const missing = checklist.filter(x => !results[x.itemID]);
-  if (missing.length > 0) {
-    alert(`還有 ${missing.length} 個項目尚未確認結果`);
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  currentPhoto = file;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('photo-preview').innerHTML = `<img class="photo-preview" src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function compressAndConvertPhoto(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const max_size = 1200; // 限制長寬最大 1200px
+
+        if (width > height && width > max_size) {
+          height *= max_size / width;
+          width = max_size;
+        } else if (height > max_size) {
+          width *= max_size / height;
+          height = max_size;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        const comma = compressedDataUrl.indexOf(',');
+        resolve({
+          name: file.name,
+          mimeType: 'image/jpeg',
+          data: compressedDataUrl.substring(comma + 1)
+        });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function toggleAdditionalReason() {
+  const type = document.getElementById('inspection-type').value;
+  document.getElementById('additional-reason-area').style.display = type === '追加' ? 'block' : 'none';
+}
+
+/* =====================================================
+   Submit (樂觀更新 + 背景非同步上傳)
+   ===================================================== */
+async function submitInspection() {
+  const incomplete = checklist.filter(item => !results[item.itemID]);
+  if (incomplete.length) {
+    alert(`還有 ${incomplete.length} 個項目尚未判定。`);
     return;
   }
+  for (const item of checklist) {
+    const r = results[item.itemID];
+    if (r.result === '注意' || r.result === 'NG') {
+      const note = document.getElementById(`note-input-${item.itemID}`);
+      if (!note || !note.value.trim()) {
+        alert(`「${item.item}」需要填寫備註。`);
+        note?.focus();
+        return;
+      }
+      r.note = note.value.trim();
+      r.itemText = item.item;
+    }
+  }
+  const type = document.getElementById('inspection-type').value;
+  let additionalReason = '';
+  if (type === '追加') {
+    additionalReason = document.getElementById('additional-reason').value.trim();
+    if (!additionalReason) {
+      alert('追加檢查必須填寫原因。');
+      return;
+    }
+  }
+  Object.keys(issueReviews).forEach(issueID => {
+    const input = document.getElementById(`review-note-${issueID}`);
+    if (input) issueReviews[issueID].note = input.value.trim();
+  });
 
-  // 整理上傳包裝
-  const resArray = checklist.map(item => ({
-    itemID: item.itemID,
-    itemText: item.item,
-    result: results[item.itemID],
-    note: '', 
-    reviewed: false
-  }));
+  const measurements = {
+    pvVoltage: document.getElementById('m-pv').value,
+    diodeVoltage: document.getElementById('m-diode').value,
+    bypassVoltage: document.getElementById('m-bypass').value,
+    loadCurrent: document.getElementById('m-current').value,
+    outputPower: document.getElementById('m-power').value,
+    controllerTemp: document.getElementById('m-temp').value,
+    weather: document.getElementById('m-weather').value
+  };
+
+  showLoading('正在處理影像並打包資料...');
+  let photo = null;
+  if (currentPhoto) {
+    photo = await compressAndConvertPhoto(currentPhoto);
+  }
+  hideLoading();
 
   const payload = {
     inspectorName: currentInspector.name,
+    inspectorID: currentInspector.inspectorID,
     pointID: currentPoint.pointID,
     method: currentMethod,
-    inspectionType: '定期',
-    additionalReason: '',
-    results: resArray,
-    issueReviews: [],
-    photo: null, 
-    measurements: null
+    inspectionType: type,
+    additionalReason,
+    results: checklist.map(item => ({
+      itemID: item.itemID,
+      itemText: item.item,
+      result: results[item.itemID].result,
+      note: results[item.itemID].note || '',
+      reviewed: false
+    })),
+    issueReviews: Object.values(issueReviews),
+    measurements,
+    photo
   };
 
-  btn.disabled = true;
-  btn.textContent = '🚀 送出中……';
-
-  // 1. 樂觀 UI 更新：霸王硬上弓，先把本機狀態改掉再說
-  const pIndex = dashboard.findIndex(p => String(p.pointID) === String(currentPoint.pointID));
+  // 1. 樂觀更新本地 Dashboard 狀態，瞬間切換完成畫面！
+  const pIndex = dashboard.findIndex(x => String(x.pointID) === String(currentPoint.pointID));
   if (pIndex !== -1) {
     dashboard[pIndex].completedToday = true;
     dashboard[pIndex].status = '今日已完成';
   }
-  todayInspections.push({ pointID: currentPoint.pointID, status: '完成' });
 
-  // 2. 把工作丟進背景佇列，讓他自己慢慢排隊上傳
-  syncQueue.push({ action: 'saveInspection', args: [payload] });
-  processQueue(); 
-
-  // 3. 他媽的一秒鐘都不等，直接切換到完成畫面
+  // 2. 瞬間跳轉完成頁面，使用者免等待！
   showComplete();
+
+  // 3. 丟入背景佇列發送
+  uploadQueue.push({ payload, failed: false });
+  saveQueueToStorage();
+  processQueue();
 }
 
+/* =====================================================
+   Complete
+   ===================================================== */
 function showComplete() {
+  const done = dashboard.filter(x => x.completedToday).length;
+  const total = dashboard.length;
+  if (done === total && total) {
+    app(`
+    <div class="page complete">
+      <div class="complete-icon">✓</div>
+      <div class="complete-title">今日全部完成</div>
+      <div class="complete-description">
+        ${done} / ${total} 個定期巡檢點位已完成<br><br>
+        仍可進行追加檢查或異常覆核。
+      </div>
+      <button class="primary-btn" onclick="showPoints()">返回點位</button>
+    </div>
+    `);
+    return;
+  }
   app(`
   <div class="page complete">
-    <div class="complete-icon">✅</div>
-    <div class="complete-title">巡檢已紀錄</div>
-    <div class="complete-description">背景正在同步資料...<br>您可以直接繼續下一筆。</div>
-    <button class="primary-btn" onclick="startPointScan()">📳 掃描下一個點位</button>
-    <button class="secondary-btn" style="margin-top:12px" onclick="showPoints()">回到清單</button>
-  </div>`);
+    <div class="complete-icon">✓</div>
+    <div class="complete-title">檢查完成</div>
+    <div class="complete-description">
+      ${esc(currentPoint.name)} 已完成。<br><br>
+      今日還有 ${total - done} 個定期點位。
+    </div>
+    <button class="primary-btn" onclick="showPoints()">返回未完成點位</button>
+  </div>
+  `);
 }
 
-// History fallback for simple navigation setup
-function showHistory() {
-  app(`<div class="page">${renderUserHeader()}<button class="back-btn" onclick="showHome()">← 返回首頁</button><div>記錄功能在此略過展示，請實作原本的 UI。</div></div>`);
+/* =====================================================
+   History
+   ===================================================== */
+async function showHistory() {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <div class="title">檢核記錄</div>
+    <div class="card">
+      <div class="filter-grid">
+        <input id="filter-date" class="filter-input" type="date">
+        <select id="filter-point" class="filter-input">
+          <option value="">全部 Point</option>
+          ${points.map(p => `<option value="${esc(p.pointID)}">${esc(p.pointID)}</option>`).join('')}
+        </select>
+      </div>
+      <select id="filter-result" class="filter-input">
+        <option value="">全部結果</option>
+        <option value="OK">正常</option>
+        <option value="注意">注意</option>
+        <option value="NG">NG</option>
+      </select>
+      <button class="primary-btn" style="margin-top:10px" onclick="loadHistory()">查詢</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+  `);
+  loadHistory();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  init();
-});
+async function loadHistory() {
+  const date = document.getElementById('filter-date').value;
+  const pointID = document.getElementById('filter-point').value;
+  const result = document.getElementById('filter-result').value;
+  const box = document.getElementById('history-list');
+  if (box) {
+    box.innerHTML = `<div class="card" style="text-align:center;color:#777">正在查詢巡檢記錄……</div>`;
+  }
+  const rows = await runServer('getHistory', { date, pointID, result });
+  if (!rows.length) {
+    box.innerHTML = `<div class="card">沒有符合條件的紀錄。</div>`;
+    return;
+  }
+  box.innerHTML = rows.map(row => `
+  <div class="history-row">
+    <div><b>${esc(row.date)}</b> ${esc(row.time)}</div>
+    <div style="margin-top:5px">${esc(row.pointID)} ｜${esc(row.inspector)}</div>
+    <div>${esc(row.itemID)}</div>
+    <div class="history-result ${row.result === 'OK' ? 'result-ok' : row.result === 'NG' ? 'result-ng' : 'result-warning'}">
+      ${esc(row.result)}
+    </div>
+    ${row.note ? `<div style="margin-top:5px">${esc(row.note)}</div>` : ''}
+  </div>
+  `).join('');
+}
+
+/* =====================================================
+   Issues
+   ===================================================== */
+async function showIssues() {
+  stopAllScanning();
+  const issues = await runServer('getIssues');
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <button class="back-btn" onclick="showHome()">← 返回</button>
+    <div class="title">異常追蹤</div>
+    <div class="subtitle">未結案異常會持續保留</div>
+    <div id="issue-list"></div>
+  </div>
+  `);
+  const open = issues.filter(x => x.status !== '已結案');
+  const box = document.getElementById('issue-list');
+  if (!open.length) {
+    box.innerHTML = `<div class="card" style="text-align:center">✓<br><br>目前沒有未結案異常。</div>`;
+    return;
+  }
+  box.innerHTML = open.map(issue => `
+  <div class="issue-card">
+    <div class="issue-title">${esc(issue.pointID)} ｜${esc(issue.itemID)}</div>
+    <div>${esc(issue.abnormalStatus)}</div>
+    <div style="margin-top:8px">${esc(issue.content)}</div>
+    <div class="issue-meta">
+      發現日期：${esc(issue.foundDate)}<br>
+      一週後覆核：${esc(issue.weeklyReviewDate)}<br>
+      下次定檢覆核：${esc(issue.regularReviewDate)}<br>
+      狀態：${esc(issue.status)}
+      ${issue.lastReviewDate ? `<br>最後覆核：${esc(issue.lastReviewDate)} ｜${esc(issue.lastReviewResult)}` : ''}
+    </div>
+  </div>
+  `).join('');
+}
+
+/* =====================================================
+   Admin
+   ===================================================== */
+async function showAdmin() {
+  if (String(currentInspector.permission).toLowerCase() !== 'admin') {
+    alert('只有 Admin 可以進入系統管理。');
+    return;
+  }
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <button class="back-btn" onclick="showHome()">← 返回</button>
+    <div class="title">系統管理</div>
+    <div class="section-title">簽核者</div>
+    <div class="card">
+      <input id="admin-id" class="measure-input" placeholder="InspectorID">
+      <input id="admin-name" class="measure-input" placeholder="姓名">
+      <input id="admin-avatar" class="measure-input" placeholder="頭像URL">
+      <select id="admin-permission" class="measure-input">
+        <option value="Inspector">Inspector</option>
+        <option value="Admin">Admin</option>
+      </select>
+      <button class="primary-btn" style="margin-top:10px" onclick="saveAdminInspector()">新增／更新簽核者</button>
+    </div>
+    <div class="section-title">Point 檢查週期</div>
+    <div id="admin-points"></div>
+  </div>
+  `);
+  document.getElementById('admin-points').innerHTML = points.map(point => `
+  <div class="card">
+    <b>${esc(point.pointID)} ｜${esc(point.name)}</b>
+    <input id="interval-${esc(point.pointID)}" class="measure-input" type="number" min="1" value="${point.interval}" placeholder="檢查週期（天）">
+    <button class="secondary-btn" style="margin-top:8px" onclick="saveInterval('${escJS(point.pointID)}')">儲存週期</button>
+  </div>
+  `).join('');
+}
+
+async function saveAdminInspector() {
+  await runServer('saveInspector', {
+    inspectorID: document.getElementById('admin-id').value.trim(),
+    name: document.getElementById('admin-name').value.trim(),
+    avatar: document.getElementById('admin-avatar').value.trim(),
+    enabled: true,
+    permission: document.getElementById('admin-permission').value
+  });
+  alert('已儲存簽核者。');
+}
+
+async function saveInterval(pointID) {
+  const value = document.getElementById(`interval-${pointID}`).value;
+  if (!value || Number(value) <= 0) {
+    alert('請輸入正確的天數。');
+    return;
+  }
+  await runServer('updatePointInterval', [pointID, Number(value)]);
+  alert('檢查週期已更新。');
+}
+
+/* =====================================================
+   Helpers
+   ===================================================== */
+function app(html) { document.getElementById('app').innerHTML = html; }
+function bottom(show) { document.getElementById('bottomNav').style.display = show ? 'flex' : 'none'; }
+function esc(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+function escJS(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+function showError(error) {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    <div class="title">發生錯誤</div>
+    <div class="card">${esc(error?.message || error)}</div>
+    <button class="primary-btn" onclick="location.reload()">重新載入</button>
+  </div>
+  `);
+}
+
+function checkScanURL() {
+  const params = new URLSearchParams(window.location.search);
+  const pointID = params.get('point');
+  const method = params.get('method');
+  if (!pointID || !method) return;
+  window.pendingScan = { pointID, method };
+}
+
+const originalInit = init;
+init = async function() {
+  checkScanURL();
+  try {
+    await originalInit();
+    if (window.pendingScan && currentInspector) {
+      openScannedPoint(window.pendingScan.pointID, window.pendingScan.method);
+      window.pendingScan = null;
+    }
+  } finally {
+    finishInitialLoading();
+  }
+};
+
+init();
 </script>
 </body>
 </html>
