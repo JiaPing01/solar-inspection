@@ -185,6 +185,39 @@ select {
   margin-top: 3px;
 }
 /* =====================================================
+   Modal (密碼驗證彈窗)
+   ===================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-card {
+  width: min(100%, 340px);
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  text-align: center;
+}
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.modal-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+/* =====================================================
    Header
    ===================================================== */
 .user-header {
@@ -699,7 +732,6 @@ select {
   border-radius: 50%;
   animation: loading-spin .8s linear infinite;
 }
-
 /* =====================================================
    Global Loading Overlay
    ===================================================== */
@@ -772,7 +804,6 @@ select {
   .loading-spinner, .loading-dots::after { animation-duration: 2.5s; }
   #loadingOverlay { transition: none; }
 }
-
 /* =====================================================
    Responsive
    ===================================================== */
@@ -813,13 +844,23 @@ select {
 </head>
 <body>
 <div id="app"></div>
-
 <!-- 背景同步進度指示器 -->
 <div id="bgSyncBadge" class="sync-badge hidden" onclick="handleBadgeClick()">
   <span id="syncIcon" class="sync-spinner-small"></span>
   <span id="syncText">同步中...</span>
 </div>
-
+<!-- 密碼輸入 Modal -->
+<div id="passwordModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div id="pwdTargetName" class="modal-title">簽核者密碼驗證</div>
+    <div class="modal-subtitle">請輸入登入密碼</div>
+    <input id="pwdModalInput" type="password" class="measure-input" placeholder="請輸入密碼" style="margin-bottom:16px;">
+    <div style="display:flex; gap:10px;">
+      <button class="secondary-btn" onclick="closePasswordModal()">取消</button>
+      <button class="primary-btn" onclick="confirmPasswordLogin()">驗證登入</button>
+    </div>
+  </div>
+</div>
 <!-- 頁面初始載入遮罩 -->
 <div id="loadingOverlay" role="status" aria-live="polite" aria-atomic="true">
   <div class="loading-panel">
@@ -828,31 +869,24 @@ select {
     <div id="loadingMessage" class="loading-message">正在連線並載入巡檢資料<span class="loading-dots"></span></div>
   </div>
 </div>
-
-<div id="bottomNav"
-class="bottom-nav"
-style="display:none">
-<button class="nav-btn"
-onclick="showHome()">
-<span class="nav-icon">⌂</span>
-首頁
-</button>
-<button class="nav-btn"
-onclick="showPoints()">
-<span class="nav-icon">✓</span>
-檢核
-</button>
-<button class="nav-btn"
-onclick="showHistory()">
-<span class="nav-icon">☷</span>
-記錄
-</button>
+<div id="bottomNav" class="bottom-nav" style="display:none">
+  <button class="nav-btn" onclick="showHome()">
+    <span class="nav-icon">⌂</span>首頁
+  </button>
+  <button class="nav-btn" onclick="showPoints()">
+    <span class="nav-icon">✓</span>檢核
+  </button>
+  <button class="nav-btn" onclick="showHistory()">
+    <span class="nav-icon">☷</span>記錄
+  </button>
 </div>
 <script>
 let inspectors = [];
 let points = [];
 let dashboard = [];
 let todayInspections = [];
+let systemSettings = { requirePassword: false };
+let pendingInspector = null;
 let currentInspector = null;
 let currentPoint = null;
 let checklist = [];
@@ -861,23 +895,19 @@ let currentMethod = '';
 let openIssues = [];
 let issueReviews = {};
 let currentPhoto = null;
-
 /* =====================================================
    Background Upload Queue Engine (背景佇列引擎)
    ===================================================== */
 let uploadQueue = JSON.parse(localStorage.getItem('pv_upload_queue') || '[]');
 let isProcessingQueue = false;
-
 function saveQueueToStorage() {
   localStorage.setItem('pv_upload_queue', JSON.stringify(uploadQueue));
 }
-
 function updateSyncUI() {
   const badge = document.getElementById('bgSyncBadge');
   const icon = document.getElementById('syncIcon');
   const text = document.getElementById('syncText');
   if (!badge) return;
-
   if (uploadQueue.length === 0) {
     if (badge.classList.contains('syncing')) {
       badge.className = 'sync-badge success';
@@ -891,7 +921,6 @@ function updateSyncUI() {
     }
     return;
   }
-
   badge.classList.remove('hidden');
   const hasError = uploadQueue.some(q => q.failed);
   if (hasError && !isProcessingQueue) {
@@ -905,7 +934,6 @@ function updateSyncUI() {
     text.textContent = `背景同步中 (${uploadQueue.length})`;
   }
 }
-
 async function processQueue() {
   if (isProcessingQueue || uploadQueue.length === 0) {
     updateSyncUI();
@@ -913,27 +941,23 @@ async function processQueue() {
   }
   isProcessingQueue = true;
   updateSyncUI();
-
   while (uploadQueue.length > 0) {
     const item = uploadQueue[0];
     try {
-      // isBackground = true，避開全螢幕 Loading 畫面
       await runServer('saveInspection', item.payload, true);
-      uploadQueue.shift(); // 傳送成功，移除隊列
+      uploadQueue.shift();
       saveQueueToStorage();
       updateSyncUI();
     } catch (err) {
       console.error('背景上傳失敗，等待重試：', err);
       item.failed = true;
       saveQueueToStorage();
-      break; // 發生網路錯誤，中斷迴圈等待手動重試或網路復原
+      break;
     }
   }
-
   isProcessingQueue = false;
   updateSyncUI();
 }
-
 function handleBadgeClick() {
   const hasError = uploadQueue.some(q => q.failed);
   if (hasError) {
@@ -942,7 +966,6 @@ function handleBadgeClick() {
     processQueue();
   }
 }
-
 /* =====================================================
    Scanner State
    ===================================================== */
@@ -953,14 +976,12 @@ let qrDetector = null;
 let qrScannerRunning = false;
 let qrAnimationFrame = null;
 let useNativeBarcodeDetector = false;
-
 /* =====================================================
    Global Loading State
    ===================================================== */
 let loadingCount = 0;
 let initialLoading = true;
 let loadingMessageText = '正在載入資料';
-
 function renderLoadingState() {
   const overlay = document.getElementById('loadingOverlay');
   const message = document.getElementById('loadingMessage');
@@ -972,32 +993,26 @@ function renderLoadingState() {
   overlay.classList.toggle('is-hidden', !shouldShow);
   overlay.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
 }
-
 function showLoading(message = '正在載入資料') {
   loadingCount++;
   loadingMessageText = message;
   renderLoadingState();
 }
-
 function hideLoading() {
   loadingCount = Math.max(0, loadingCount - 1);
   renderLoadingState();
 }
-
 function finishInitialLoading() {
   initialLoading = false;
   renderLoadingState();
 }
-
 /* =====================================================
    Server Communication
    ===================================================== */
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbySwcWW5i0s9LJOJWSah51PNDZ7fzGTh_qvxZPk3jks3uT_FgHjVP1BVLSufqalRkQDbg/exec';
-
 async function runServer(name, args = [], isBackground = false) {
   if (!Array.isArray(args)) args = [args];
   if (!isBackground) showLoading('正在與巡檢系統連線');
-
   try {
     let response;
     try {
@@ -1007,9 +1022,7 @@ async function runServer(name, args = [], isBackground = false) {
         body: JSON.stringify({ action: name, args })
       });
     } catch (error) {
-      throw new Error(
-        '無法連線到巡檢 API。原始錯誤：' + (error?.message || error)
-      );
+      throw new Error('無法連線到巡檢 API。原始錯誤：' + (error?.message || error));
     }
     if (!response.ok) {
       throw new Error('巡檢 API 回應 HTTP ' + response.status);
@@ -1028,24 +1041,24 @@ async function runServer(name, args = [], isBackground = false) {
     if (!isBackground) hideLoading();
   }
 }
-
 /* =====================================================
    Init
    ===================================================== */
 async function init() {
   try {
     await runServer('setupSystem');
-    const data =
-      await Promise.all([
-        runServer('getInspectors'),
-        runServer('getPoints'),
-        runServer('getDashboardData'),
-        runServer('getTodayInspections')
-      ]);
+    const data = await Promise.all([
+      runServer('getInspectors'),
+      runServer('getPoints'),
+      runServer('getDashboardData'),
+      runServer('getTodayInspections'),
+      runServer('getSettings')
+    ]);
     inspectors = data[0];
     points = data[1];
     dashboard = data[2];
     todayInspections = data[3];
+    systemSettings = data[4] || { requirePassword: false };
     const saved = sessionStorage.getItem('currentInspector');
     if (saved) {
       try {
@@ -1056,9 +1069,7 @@ async function init() {
       }
     }
     
-    // 初始化背景上傳佇列
     processQueue();
-
     if (currentInspector) {
       showApp();
     } else {
@@ -1068,16 +1079,15 @@ async function init() {
     showError(error);
   }
 }
-
 /* =====================================================
-   Inspector
+   Inspector & Modal
    ===================================================== */
 function showInspectorSelection() {
   bottom(false);
   let html = `
   <div class="page user-page">
     <div class="user-title">誰要進行巡檢？</div>
-    <div class="user-subtitle">請選擇本次簽核者</div>
+    <div class="user-subtitle">請點擊頭像選擇簽核者</div>
   `;
   inspectors.forEach(user => {
     html += `
@@ -1098,28 +1108,61 @@ function showInspectorSelection() {
   html += `</div>`;
   app(html);
 }
-
 function selectInspector(id) {
-  currentInspector = inspectors.find(x => String(x.inspectorID) === String(id));
-  if (!currentInspector) return;
-  sessionStorage.setItem('currentInspector', JSON.stringify(currentInspector));
-  showApp();
+  const target = inspectors.find(x => String(x.inspectorID) === String(id));
+  if (!target) return;
+  if (systemSettings.requirePassword) {
+    pendingInspector = target;
+    showPasswordModal(target);
+  } else {
+    currentInspector = target;
+    sessionStorage.setItem('currentInspector', JSON.stringify(currentInspector));
+    showApp();
+  }
 }
-
+function showPasswordModal(target) {
+  document.getElementById('pwdTargetName').textContent = `${target.name} - 密碼驗證`;
+  document.getElementById('pwdModalInput').value = '';
+  document.getElementById('passwordModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('pwdModalInput').focus(), 100);
+}
+function closePasswordModal() {
+  document.getElementById('passwordModal').style.display = 'none';
+  pendingInspector = null;
+}
+async function confirmPasswordLogin() {
+  if (!pendingInspector) return;
+  const pwd = document.getElementById('pwdModalInput').value;
+  if (!pwd) {
+    alert('請輸入密碼');
+    return;
+  }
+  try {
+    const res = await runServer('verifyPassword', [pendingInspector.inspectorID, pwd]);
+    if (res && res.success) {
+      currentInspector = pendingInspector;
+      sessionStorage.setItem('currentInspector', JSON.stringify(currentInspector));
+      closePasswordModal();
+      showApp();
+    } else {
+      alert('密碼錯誤，請重新輸入。');
+    }
+  } catch (err) {
+    alert('驗證失敗：' + err.message);
+  }
+}
 function switchInspector() {
   sessionStorage.removeItem('currentInspector');
   currentInspector = null;
   showInspectorSelection();
 }
-
 /* =====================================================
-   Main
+   Main & Home
    ===================================================== */
 function showApp() {
   bottom(true);
   showHome();
 }
-
 function renderUserHeader() {
   return `
   <div class="user-header">
@@ -1133,17 +1176,12 @@ function renderUserHeader() {
   </div>
   `;
 }
-
-/* =====================================================
-   Home
-   ===================================================== */
 function showHome() {
   stopAllScanning();
   const completed = dashboard.filter(x => x.completedToday).length;
   const total = dashboard.length;
   const remain = total - completed;
   const percent = total ? Math.round(completed / total * 100) : 0;
-
   let html = `
   <div class="page">
     ${renderUserHeader()}
@@ -1186,7 +1224,6 @@ function showHome() {
       </div>
     </button>
   `;
-
   if (String(currentInspector.permission).toLowerCase() === 'admin') {
     html += `
     <button class="menu-card" onclick="showAdmin()">
@@ -1198,7 +1235,6 @@ function showHome() {
     </button>
     `;
   }
-
   if (completed === total && total > 0) {
     html += `
     <div class="big-check">✓</div>
@@ -1209,14 +1245,12 @@ function showHome() {
   html += `</div>`;
   app(html);
 }
-
 /* =====================================================
    Points
    ===================================================== */
 async function refreshDashboard() {
   dashboard = await runServer('getDashboardData');
 }
-
 async function showPoints() {
   stopAllScanning();
   let html = `
@@ -1260,7 +1294,6 @@ async function showPoints() {
   html += `</div>`;
   app(html);
 }
-
 /* =====================================================
    Scan Choice
    ===================================================== */
@@ -1269,13 +1302,11 @@ function startPointScan() {
   currentPoint = null;
   showScanChoice();
 }
-
 function selectPoint(id) {
   currentPoint = points.find(p => String(p.pointID) === String(id));
   if (!currentPoint) return;
   showManualPointChoice();
 }
-
 function showManualPointChoice() {
   app(`
   <div class="page">
@@ -1293,7 +1324,6 @@ function showManualPointChoice() {
   </div>
   `);
 }
-
 function showScanChoice() {
   app(`
   <div class="page">
@@ -1316,7 +1346,6 @@ function showScanChoice() {
   </div>
   `);
 }
-
 /* =====================================================
    Real NFC / QR Scan
    ===================================================== */
@@ -1337,7 +1366,6 @@ async function beginScan(method) {
     hideLoading();
   }
 }
-
 /* =====================================================
    NFC
    ===================================================== */
@@ -1375,7 +1403,6 @@ async function startNFCScan() {
     showScannerError('NFC 啟動失敗：' + (error.message || error));
   }
 }
-
 function handleNFCReading(event) {
   let pointID = null;
   try {
@@ -1396,7 +1423,6 @@ function handleNFCReading(event) {
   stopNFCScan();
   openScannedPoint(pointID, 'NFC');
 }
-
 function decodeNFCRecord(record) {
   try {
     if (record.recordType === 'text') {
@@ -1413,13 +1439,11 @@ function decodeNFCRecord(record) {
   }
   return '';
 }
-
 /* =====================================================
-   QR (雙軌雙層相容版：Android 原生 + iOS jsQR)
+   QR Scan
    ===================================================== */
 async function startQRScan() {
   useNativeBarcodeDetector = false;
-
   if ('BarcodeDetector' in window) {
     try {
       const formats = await BarcodeDetector.getSupportedFormats();
@@ -1431,7 +1455,6 @@ async function startQRScan() {
       useNativeBarcodeDetector = false;
     }
   }
-
   app(`
   <div class="page scanner-page">
     <button class="back-btn" onclick="stopQRScan();showScanChoice()">← 返回</button>
@@ -1446,7 +1469,6 @@ async function startQRScan() {
     <canvas id="qr-canvas" style="display:none;"></canvas>
   </div>
   `);
-
   try {
     qrStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: 'environment' } },
@@ -1454,33 +1476,26 @@ async function startQRScan() {
     });
     const video = document.getElementById('qr-video');
     if (!video) return;
-
     video.srcObject = qrStream;
     video.setAttribute("playsinline", "true");
     await video.play();
-
     qrScannerRunning = true;
     const status = document.getElementById('scanner-status');
     if (status) status.textContent = '相機已啟動，請對準 QR Code';
     scanQRFrame();
   } catch (error) {
-    showScannerError('相機啟動失敗：' + (error.message || error) + '\n\n請確認已選用允許此網站存取相機。');
+    showScannerError('相機啟動失敗：' + (error.message || error) + '\n\n請確認已允許此網站使用相機。');
   }
 }
-
 async function scanQRFrame() {
   if (!qrScannerRunning) return;
-
   const video = document.getElementById('qr-video');
   const canvasElement = document.getElementById('qr-canvas');
-
   if (!video || video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA) {
     qrAnimationFrame = requestAnimationFrame(scanQRFrame);
     return;
   }
-
   let rawData = null;
-
   try {
     if (useNativeBarcodeDetector && qrDetector) {
       const codes = await qrDetector.detect(video);
@@ -1498,7 +1513,6 @@ async function scanQRFrame() {
       if (code) rawData = code.data;
     }
   } catch (error) {}
-
   if (rawData) {
     const pointID = parsePointPayload(rawData);
     if (pointID) {
@@ -1507,12 +1521,10 @@ async function scanQRFrame() {
       return;
     }
   }
-
   if (qrScannerRunning) {
     qrAnimationFrame = requestAnimationFrame(scanQRFrame);
   }
 }
-
 /* =====================================================
    Payload Parser
    ===================================================== */
@@ -1532,12 +1544,10 @@ function parsePointPayload(payload) {
   } catch (error) {}
   return null;
 }
-
 function findPointID(value) {
   const point = points.find(p => String(p.pointID).toUpperCase() === String(value).toUpperCase());
   return point ? point.pointID : null;
 }
-
 /* =====================================================
    Open Scanned Point
    ===================================================== */
@@ -1551,7 +1561,6 @@ function openScannedPoint(pointID, method) {
   currentMethod = method;
   loadPointData();
 }
-
 /* =====================================================
    Scanner Stop
    ===================================================== */
@@ -1562,7 +1571,6 @@ function stopNFCScan() {
   nfcAbortController = null;
   nfcReader = null;
 }
-
 function stopQRScan() {
   qrScannerRunning = false;
   qrDetector = null;
@@ -1576,12 +1584,10 @@ function stopQRScan() {
     qrStream = null;
   }
 }
-
 function stopAllScanning() {
   stopNFCScan();
   stopQRScan();
 }
-
 function showScannerError(message) {
   stopAllScanning();
   app(`
@@ -1596,7 +1602,6 @@ function showScannerError(message) {
   </div>
   `);
 }
-
 /* =====================================================
    Manual / Point Data
    ===================================================== */
@@ -1604,7 +1609,6 @@ function loadPointByMethod(method) {
   currentMethod = method;
   loadPointData();
 }
-
 async function loadPointData() {
   try {
     checklist = await runServer('getChecklist', currentPoint.pointID);
@@ -1617,7 +1621,6 @@ async function loadPointData() {
     showError(error);
   }
 }
-
 /* =====================================================
    Checklist
    ===================================================== */
@@ -1669,7 +1672,6 @@ function showChecklist() {
     </div>
     `;
   });
-
   html += `
   <div class="section-title">量測資料</div>
   <div class="card">
@@ -1713,9 +1715,8 @@ function showChecklist() {
   `;
   app(html);
 }
-
 /* =====================================================
-   Results
+   Results & Photo
    ===================================================== */
 function setResult(itemID, result) {
   results[itemID] = { result, note: '', reviewed: false };
@@ -1726,7 +1727,6 @@ function setResult(itemID, result) {
   if (result === 'OK') document.getElementById(`ok-${itemID}`).className += ' selected-ok';
   if (result === '注意') document.getElementById(`attention-${itemID}`).className += ' selected-attention';
   if (result === 'NG') document.getElementById(`ng-${itemID}`).className += ' selected-ng';
-
   const box = document.getElementById(`note-${itemID}`);
   if (result === 'OK') {
     box.innerHTML = '';
@@ -1734,7 +1734,6 @@ function setResult(itemID, result) {
     box.innerHTML = `<textarea id="note-input-${esc(itemID)}" class="note-box" placeholder="請填寫異常狀況或備註"></textarea>`;
   }
 }
-
 function setIssueReview(issueID, result) {
   if (!result) {
     delete issueReviews[issueID];
@@ -1742,10 +1741,6 @@ function setIssueReview(issueID, result) {
   }
   issueReviews[issueID] = { issueID, result, close: false, note: '' };
 }
-
-/* =====================================================
-   Photo Tools & Compress (前端自動圖片壓縮)
-   ===================================================== */
 function previewPhoto(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1756,7 +1751,6 @@ function previewPhoto(input) {
   };
   reader.readAsDataURL(file);
 }
-
 function compressAndConvertPhoto(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -1766,8 +1760,7 @@ function compressAndConvertPhoto(file) {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        const max_size = 1200; // 限制長寬最大 1200px
-
+        const max_size = 1200;
         if (width > height && width > max_size) {
           height *= max_size / width;
           width = max_size;
@@ -1775,12 +1768,10 @@ function compressAndConvertPhoto(file) {
           width *= max_size / height;
           height = max_size;
         }
-
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-
         const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
         const comma = compressedDataUrl.indexOf(',');
         resolve({
@@ -1794,14 +1785,12 @@ function compressAndConvertPhoto(file) {
     reader.readAsDataURL(file);
   });
 }
-
 function toggleAdditionalReason() {
   const type = document.getElementById('inspection-type').value;
   document.getElementById('additional-reason-area').style.display = type === '追加' ? 'block' : 'none';
 }
-
 /* =====================================================
-   Submit (樂觀更新 + 背景非同步上傳)
+   Submit
    ===================================================== */
 async function submitInspection() {
   const incomplete = checklist.filter(item => !results[item.itemID]);
@@ -1835,7 +1824,6 @@ async function submitInspection() {
     const input = document.getElementById(`review-note-${issueID}`);
     if (input) issueReviews[issueID].note = input.value.trim();
   });
-
   const measurements = {
     pvVoltage: document.getElementById('m-pv').value,
     diodeVoltage: document.getElementById('m-diode').value,
@@ -1845,14 +1833,12 @@ async function submitInspection() {
     controllerTemp: document.getElementById('m-temp').value,
     weather: document.getElementById('m-weather').value
   };
-
   showLoading('正在處理影像並打包資料...');
   let photo = null;
   if (currentPhoto) {
     photo = await compressAndConvertPhoto(currentPhoto);
   }
   hideLoading();
-
   const payload = {
     inspectorName: currentInspector.name,
     inspectorID: currentInspector.inspectorID,
@@ -1871,23 +1857,16 @@ async function submitInspection() {
     measurements,
     photo
   };
-
-  // 1. 樂觀更新本地 Dashboard 狀態，瞬間切換完成畫面！
   const pIndex = dashboard.findIndex(x => String(x.pointID) === String(currentPoint.pointID));
   if (pIndex !== -1) {
     dashboard[pIndex].completedToday = true;
     dashboard[pIndex].status = '今日已完成';
   }
-
-  // 2. 瞬間跳轉完成頁面，使用者免等待！
   showComplete();
-
-  // 3. 丟入背景佇列發送
   uploadQueue.push({ payload, failed: false });
   saveQueueToStorage();
   processQueue();
 }
-
 /* =====================================================
    Complete
    ===================================================== */
@@ -1920,9 +1899,8 @@ function showComplete() {
   </div>
   `);
 }
-
 /* =====================================================
-   History
+   History & Issues
    ===================================================== */
 async function showHistory() {
   stopAllScanning();
@@ -1951,7 +1929,6 @@ async function showHistory() {
   `);
   loadHistory();
 }
-
 async function loadHistory() {
   const date = document.getElementById('filter-date').value;
   const pointID = document.getElementById('filter-point').value;
@@ -1977,10 +1954,6 @@ async function loadHistory() {
   </div>
   `).join('');
 }
-
-/* =====================================================
-   Issues
-   ===================================================== */
 async function showIssues() {
   stopAllScanning();
   const issues = await runServer('getIssues');
@@ -2014,25 +1987,44 @@ async function showIssues() {
   </div>
   `).join('');
 }
-
 /* =====================================================
-   Admin
+   Admin (系統管理)
    ===================================================== */
 async function showAdmin() {
   if (String(currentInspector.permission).toLowerCase() !== 'admin') {
     alert('只有 Admin 可以進入系統管理。');
     return;
   }
-  app(`
+  let html = `
   <div class="page">
     ${renderUserHeader()}
     <button class="back-btn" onclick="showHome()">← 返回</button>
     <div class="title">系統管理</div>
-    <div class="section-title">簽核者</div>
+  `;
+  // 只有當 RequirePassword 在試算表中是 TRUE 時，才顯示這區塊
+  if (systemSettings.requirePassword) {
+    html += `
+    <div class="section-title">安全設定</div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b>登入密碼驗證</b>
+          <div style="font-size:13px; color:#777; margin-top:2px;">點擊大頭貼登入時需要驗證密碼</div>
+        </div>
+        <button class="secondary-btn" style="width:auto; padding:8px 16px; font-size:14px;" onclick="toggleRequirePassword(false)">
+          關閉密碼驗證
+        </button>
+      </div>
+    </div>
+    `;
+  }
+  html += `
+    <div class="section-title">簽核者管理</div>
     <div class="card">
       <input id="admin-id" class="measure-input" placeholder="InspectorID">
       <input id="admin-name" class="measure-input" placeholder="姓名">
       <input id="admin-avatar" class="measure-input" placeholder="頭像URL">
+      <input id="admin-password" class="measure-input" type="password" placeholder="密碼 (可不填)">
       <select id="admin-permission" class="measure-input">
         <option value="Inspector">Inspector</option>
         <option value="Admin">Admin</option>
@@ -2042,7 +2034,8 @@ async function showAdmin() {
     <div class="section-title">Point 檢查週期</div>
     <div id="admin-points"></div>
   </div>
-  `);
+  `;
+  app(html);
   document.getElementById('admin-points').innerHTML = points.map(point => `
   <div class="card">
     <b>${esc(point.pointID)} ｜${esc(point.name)}</b>
@@ -2051,18 +2044,23 @@ async function showAdmin() {
   </div>
   `).join('');
 }
-
+async function toggleRequirePassword(enable) {
+  await runServer('updateSetting', ['RequirePassword', enable ? 'TRUE' : 'FALSE']);
+  systemSettings.requirePassword = enable;
+  alert(enable ? '已開啟密碼驗證。' : '已關閉密碼驗證。若要再開啟請至試算表 Settings 將 RequirePassword 改為 TRUE。');
+  showAdmin();
+}
 async function saveAdminInspector() {
   await runServer('saveInspector', {
     inspectorID: document.getElementById('admin-id').value.trim(),
     name: document.getElementById('admin-name').value.trim(),
     avatar: document.getElementById('admin-avatar').value.trim(),
+    password: document.getElementById('admin-password').value,
     enabled: true,
     permission: document.getElementById('admin-permission').value
   });
   alert('已儲存簽核者。');
 }
-
 async function saveInterval(pointID) {
   const value = document.getElementById(`interval-${pointID}`).value;
   if (!value || Number(value) <= 0) {
@@ -2072,7 +2070,6 @@ async function saveInterval(pointID) {
   await runServer('updatePointInterval', [pointID, Number(value)]);
   alert('檢查週期已更新。');
 }
-
 /* =====================================================
    Helpers
    ===================================================== */
@@ -2095,7 +2092,6 @@ function showError(error) {
   </div>
   `);
 }
-
 function checkScanURL() {
   const params = new URLSearchParams(window.location.search);
   const pointID = params.get('point');
@@ -2103,7 +2099,6 @@ function checkScanURL() {
   if (!pointID || !method) return;
   window.pendingScan = { pointID, method };
 }
-
 const originalInit = init;
 init = async function() {
   checkScanURL();
@@ -2117,7 +2112,6 @@ init = async function() {
     finishInitialLoading();
   }
 };
-
 init();
 </script>
 </body>
