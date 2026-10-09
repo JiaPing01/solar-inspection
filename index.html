@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script src="https://unpkg.com/html5-qrcode"></script>
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>太陽能系統巡檢</title>
@@ -1377,30 +1378,55 @@ function showScanChoice() {
 /* =====================================================
    Real NFC / QR Scan
    ===================================================== */
-async function beginScan(method) {
-  currentMethod = method;
-  stopAllScanning();
-  showLoading(method === 'NFC' ? '正在啟動 NFC 掃描' : '正在啟動相機與 QR 掃描器');
+let html5QrScanner = null;
+
+async function startQRScan() {
+  app(`
+  <div class="page scanner-page">
+    <button class="back-btn" onclick="stopQRScan(); showScanChoice()">← 返回</button>
+    <div class="scanner-title">QR Code 掃描</div>
+    <div class="scanner-description">將巡檢點 QR Code 對準鏡頭</div>
+    <div class="scanner-box" id="qr-reader"></div>
+    <button class="secondary-btn" onclick="stopQRScan(); showScanChoice()">取消掃描</button>
+  </div>
+  `);
+
   try {
-    if (method === 'NFC') {
-      await startNFCScan();
-      return;
-    }
-    if (method === 'QR') {
-      await startQRScan();
-      return;
-    }
-  } finally {
-    hideLoading();
+    html5QrScanner = new Html5Qrcode("qr-reader");
+    await html5QrScanner.start(
+      { facingMode: "environment" }, // 強制調用後鏡頭
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      (decodedText) => {
+        // 掃描成功！自動關閉相機並帶入點位 ID
+        stopQRScan();
+        openScannedPoint(decodedText, 'QR');
+      },
+      (errorMessage) => {
+        // 掃描中未偵測到內容，忽略錯誤訊息
+      }
+    );
+  } catch (err) {
+    showScannerError("開啟相機失敗，請確認已給予相機權限（或非 HTTPS 連線被阻擋）。");
+  }
+}
+
+function stopQRScan() {
+  if (html5QrScanner) {
+    html5QrScanner.stop().then(() => {
+      html5QrScanner.clear();
+      html5QrScanner = null;
+    }).catch(err => console.error(err));
   }
 }
 /* =====================================================
    NFC
    ===================================================== */
 async function startNFCScan() {
-  if (!('NDEFReader' in window)) {
+  // 檢查是否為 iOS 或不支援 NDEFReader 的瀏覽器
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS || !('NDEFReader' in window)) {
     showScannerError(
-      '此瀏覽器不支援 Web NFC。請使用 Android Chrome，或改用 QR Code。'
+      'iOS 系統與部分瀏覽器限制網頁存取 NFC，請改用 QR Code 或手動點選！'
     );
     return;
   }
