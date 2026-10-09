@@ -105,7 +105,19 @@
     .scanner-page { text-align: center; }
     .scanner-title { font-size: 23px; font-weight: 700; margin-top: 8px; }
     .scanner-description { color: #777; margin-top: 6px; margin-bottom: 18px; }
-    .scanner-box { width: 100%; aspect-ratio: 1 / 1; background: #111; border-radius: 20px; overflow: hidden; position: relative; margin-bottom: 16px; }
+    .scanner-box { 
+      width: 100%; 
+      max-width: 320px; 
+      aspect-ratio: 1 / 1; 
+      margin: 0 auto 16px auto; 
+      background: #111; 
+      border-radius: 20px; 
+      overflow: hidden; 
+      position: relative; 
+    }
+    .scanner-box video {
+      object-fit: cover !important;
+    }
     .scanner-status { min-height: 25px; color: #666; margin-bottom: 12px; }
     .scanner-error { color: #a51d16; margin-top: 10px; font-weight: 600; }
     /* ===================================================== Bottom Navigation ===================================================== */
@@ -336,6 +348,13 @@ function showPoints() {
   app(html);
 }
 
+function selectPoint(id) {
+  currentPoint = points.find(p => String(p.pointID) === String(id));
+  if (!currentPoint) return;
+  alert(`進入點位：${currentPoint.name} (${currentPoint.pointID})`);
+  // 在這裡載入 Checklist View
+}
+
 function startPointScan() { stopAllScanning(); showScanChoice(); }
 
 function showScanChoice() {
@@ -378,7 +397,23 @@ function showScannerError(msg) {
   if (el) el.textContent = msg; else alert(msg);
 }
 
-/* QR Code 掃描器 (支援 iOS Safari/Chrome) */
+/* 跨平台通用：處理 QR/NFC 掃描結果並切換點位 */
+function handleScannedResult(scannedData, method) {
+  const cleanedData = String(scannedData || '').trim();
+  const matchedPoint = points.find(
+    p => String(p.pointID).trim() === cleanedData ||
+         String(p.qrCode || '').trim() === cleanedData
+  );
+
+  if (matchedPoint) {
+    selectPoint(matchedPoint.pointID);
+  } else {
+    alert(`找不到對應的巡檢點位：${cleanedData}`);
+    showScanChoice();
+  }
+}
+
+/* QR Code 掃描器 (支援 iOS/Android 全平台，自動跳轉不黑屏) */
 async function startQRScan() {
   app(`
   <div class="page scanner-page">
@@ -394,24 +429,32 @@ async function startQRScan() {
     html5QrScanner = new Html5Qrcode("qr-reader");
     await html5QrScanner.start(
       { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 220, height: 220 } },
-      (decodedText) => {
-        stopQRScan();
-        alert("掃描成功，點位 ID：" + decodedText);
+      { 
+        fps: 10, 
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0
+      },
+      async (decodedText) => {
+        await stopQRScan();
+        handleScannedResult(decodedText, 'QR');
       },
       () => {}
     );
   } catch (err) {
-    showScannerError("開啟相機失敗：請確認使用 HTTPS 開啟，並允許權限。");
+    showScannerError("開啟相機失敗：請確認使用 HTTPS 連線並已允許相機權限。");
   }
 }
 
-function stopQRScan() {
+async function stopQRScan() {
   if (html5QrScanner) {
-    html5QrScanner.stop().then(() => {
+    try {
+      await html5QrScanner.stop();
       html5QrScanner.clear();
+    } catch (e) {
+      // 捕捉未完全啟動前關閉的 Promise 異常
+    } finally {
       html5QrScanner = null;
-    }).catch(() => { html5QrScanner = null; });
+    }
   }
 }
 
@@ -443,7 +486,16 @@ async function startNFCScan() {
     document.getElementById('scanner-status').textContent = 'NFC 已啟動，請靠近 Tag';
     nfcReader.onreading = event => {
       stopNFCScan();
-      alert("NFC 讀取成功！");
+      // 解析 Tag 文字並跳轉
+      let pointID = null;
+      for (const record of event.message.records) {
+        if (record.recordType === "text") {
+          const textDecoder = new TextDecoder(record.encoding);
+          pointID = textDecoder.decode(record.data);
+          break;
+        }
+      }
+      handleScannedResult(pointID || '', 'NFC');
     };
   } catch (error) {
     showScannerError('NFC 啟動失敗：' + error.message);
