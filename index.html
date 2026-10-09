@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>太陽能系統巡檢</title>
-<!-- 引入 jsQR 作為 iOS 與不支援原生 API 瀏覽器的備用方案 -->
+<!-- 載入 jsQR CDN，作為 iOS Safari 與舊版瀏覽器的備用解碼方案 -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
 * {
@@ -439,7 +440,8 @@ select {
   border: 3px solid white;
   border-radius: 18px;
   pointer-events: none;
-  box-shadow: 0 0 0 999px rgba(0,0,0,.20);
+  box-shadow:
+    0 0 0 999px rgba(0,0,0,.20);
 }
 .scanner-status {
   min-height: 25px;
@@ -450,6 +452,171 @@ select {
   color: #a51d16;
 }
 /* =====================================================
+   Checklist
+   ===================================================== */
+.check-item {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.check-text {
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.result-buttons {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+  gap: 8px;
+}
+.result-btn {
+  min-height: 52px;
+  border: 2px solid #e5e5e5;
+  background: white;
+  border-radius: 11px;
+  padding: 8px 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.selected-ok {
+  background: #e6f5ea;
+  border-color: #38a169;
+}
+.selected-attention {
+  background: #fff4d6;
+  border-color: #e0a400;
+}
+.selected-ng {
+  background: #ffe5e5;
+  border-color: #d93025;
+}
+/* =====================================================
+   Inputs
+   ===================================================== */
+.note-box,
+.measure-input,
+.filter-input {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 11px;
+  margin-top: 10px;
+  font-size: 16px;
+  background: white;
+}
+.note-box {
+  min-height: 78px;
+  resize: vertical;
+}
+/* =====================================================
+   Issues
+   ===================================================== */
+.issue-card {
+  background: #fff6f6;
+  border: 1px solid #ffd4d4;
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+.issue-title {
+  font-weight: 700;
+}
+.issue-meta {
+  font-size: 13px;
+  color: #777;
+  margin-top: 5px;
+}
+.review-row {
+  margin-top: 12px;
+}
+.review-select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: white;
+  font-size: 16px;
+}
+/* =====================================================
+   Photo
+   ===================================================== */
+.photo-box {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 15px;
+}
+.photo-preview {
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+/* =====================================================
+   Complete
+   ===================================================== */
+.complete {
+  text-align: center;
+  padding-top: 60px;
+}
+.complete-icon {
+  font-size: 90px;
+}
+.complete-title {
+  font-size: 27px;
+  font-weight: 700;
+}
+.complete-description {
+  color: #777;
+  margin: 10px 0 30px;
+}
+.big-check {
+  font-size: 100px;
+  text-align: center;
+  margin-top: 30px;
+}
+/* =====================================================
+   History
+   ===================================================== */
+.history-row {
+  background: white;
+  border-radius: 14px;
+  padding: 15px;
+  margin-bottom: 10px;
+}
+.history-result {
+  font-weight: 700;
+  margin-top: 8px;
+}
+.result-ok {
+  color: #176b35;
+}
+.result-warning {
+  color: #8a6700;
+}
+.result-ng {
+  color: #a51d16;
+}
+/* =====================================================
+   Filters / Measurements
+   ===================================================== */
+.filter-grid {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+  gap: 8px;
+}
+.measure-grid {
+  display: grid;
+  grid-template-columns:
+    1fr 1fr;
+  gap: 8px;
+}
+/* =====================================================
    Bottom Navigation
    ===================================================== */
 .bottom-nav {
@@ -458,7 +625,8 @@ select {
   left: 0;
   right: 0;
   min-height: 68px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom:
+    env(safe-area-inset-bottom);
   background: rgba(255,255,255,.97);
   border-top: 1px solid #ddd;
   display: flex;
@@ -555,11 +723,48 @@ select {
   .loading-spinner, .loading-dots::after { animation-duration: 2.5s; }
   #loadingOverlay { transition: none; }
 }
+
+/* =====================================================
+   Responsive
+   ===================================================== */
+@media (min-width: 700px) {
+  body {
+    padding-bottom: 0;
+  }
+  .page {
+    max-width: 600px;
+    padding: 24px 20px;
+  }
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-radius: 16px 16px 0 0;
+  }
+}
+/* =====================================================
+   Small Phone
+   ===================================================== */
+@media (max-width: 360px) {
+  .page {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .result-btn {
+    font-size: 14px;
+  }
+  .menu-title {
+    font-size: 16px;
+  }
+}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<!-- 頁面初始載入遮罩 -->
+<!-- 頁面初始載入遮罩：即使 API 尚未回應，也會先顯示動畫 -->
 <div id="loadingOverlay" role="status" aria-live="polite" aria-atomic="true">
   <div class="loading-panel">
     <div class="loading-spinner" aria-hidden="true"></div>
@@ -567,40 +772,26 @@ select {
     <div id="loadingMessage" class="loading-message">正在連線並載入巡檢資料<span class="loading-dots"></span></div>
   </div>
 </div>
-<div id="bottomNav" class="bottom-nav" style="display:none">
-  <button class="nav-btn" onclick="showHome()">
-    <span class="nav-icon">⌂</span> 首頁
-  </button>
-  <button class="nav-btn" onclick="showPoints()">
-    <span class="nav-icon">✓</span> 檢核
-  </button>
-  <button class="nav-btn" onclick="showHistory()">
-    <span class="nav-icon">☷</span> 記錄
-  </button>
+<div id="bottomNav"
+class="bottom-nav"
+style="display:none">
+<button class="nav-btn"
+onclick="showHome()">
+<span class="nav-icon">⌂</span>
+首頁
+</button>
+<button class="nav-btn"
+onclick="showPoints()">
+<span class="nav-icon">✓</span>
+檢核
+</button>
+<button class="nav-btn"
+onclick="showHistory()">
+<span class="nav-icon">☷</span>
+記錄
+</button>
 </div>
 <script>
-/* =====================================================
-   Utilities
-   ===================================================== */
-function app(html) { document.getElementById('app').innerHTML = html; }
-function bottom(show) { document.getElementById('bottomNav').style.display = show ? 'flex' : 'none'; }
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/[&<>'"]/g, tag => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-  }[tag]));
-}
-function escJS(str) {
-  if (!str) return '';
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-}
-function showError(err) {
-  app(`<div class="page"><div class="card" style="color:red; text-align:center;">錯誤: ${esc(err.message || err)}</div><button class="primary-btn" onclick="init()">重試</button></div>`);
-}
-
-/* =====================================================
-   State
-   ===================================================== */
 let inspectors = [];
 let points = [];
 let dashboard = [];
@@ -613,21 +804,22 @@ let currentMethod = '';
 let openIssues = [];
 let issueReviews = {};
 let currentPhoto = null;
-
+/* =====================================================
+   Scanner State
+   ===================================================== */
 let nfcReader = null;
 let nfcAbortController = null;
 let qrStream = null;
 let qrDetector = null;
 let qrScannerRunning = false;
 let qrAnimationFrame = null;
-
-let loadingCount = 0;
-let initialLoading = true;
-let loadingMessageText = '正在載入資料';
-
+let useNativeBarcodeDetector = false;
 /* =====================================================
    Global Loading State
    ===================================================== */
+let loadingCount = 0;
+let initialLoading = true;
+let loadingMessageText = '正在載入資料';
 function renderLoadingState() {
   const overlay = document.getElementById('loadingOverlay');
   const message = document.getElementById('loadingMessage');
@@ -660,373 +852,2156 @@ const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbySwcWW5i0s9LJOJWSa
 async function runServer(name, ...args) {
   showLoading('正在與巡檢系統連線');
   try {
-    let response = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: name, args })
-    });
-    if (!response.ok) throw new Error('巡檢 API 回應 HTTP ' + response.status);
-    let payload = await response.json();
-    if (!payload.success) throw new Error(payload.error || '巡檢 API 執行失敗');
+    let response;
+    try {
+      response = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: name, args })
+      });
+    } catch (error) {
+      throw new Error(
+        '無法連線到巡檢 API。若開發者工具顯示 CORS，代表 Apps Script 不允許 GitHub Pages 讀取回應；這不是帳號或相機權限問題。原始錯誤：' + (error?.message || error)
+      );
+    }
+    if (!response.ok) {
+      throw new Error('巡檢 API 回應 HTTP ' + response.status);
+    }
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error('API 回應不是有效 JSON，請確認 Apps Script 部署版本。');
+    }
+    if (!payload.success) {
+      throw new Error(payload.error || '巡檢 API 執行失敗');
+    }
     return payload.data;
   } finally {
     hideLoading();
   }
 }
-
 /* =====================================================
    Init
    ===================================================== */
 async function init() {
   try {
-    // 假裝載入資料（這邊若你 GAS 沒好會報錯，建議測試時先給假資料）
     await runServer('setupSystem');
-    const data = await Promise.all([
-      runServer('getInspectors'),
-      runServer('getPoints'),
-      runServer('getDashboardData'),
-      runServer('getTodayInspections')
-    ]);
-    inspectors = data[0] || [];
-    points = data[1] || [];
-    dashboard = data[2] || [];
-    todayInspections = data[3] || [];
-    
-    const saved = sessionStorage.getItem('currentInspector');
+    const data =
+      await Promise.all([
+        runServer('getInspectors'),
+        runServer('getPoints'),
+        runServer('getDashboardData'),
+        runServer('getTodayInspections')
+      ]);
+    inspectors = data[0];
+    points = data[1];
+    dashboard = data[2];
+    todayInspections = data[3];
+    const saved =
+      sessionStorage.getItem(
+        'currentInspector'
+      );
     if (saved) {
       try {
-        const user = JSON.parse(saved);
-        currentInspector = inspectors.find(x => String(x.inspectorID) === String(user.inspectorID));
-      } catch (e) { currentInspector = null; }
+        const user =
+          JSON.parse(saved);
+        currentInspector =
+          inspectors.find(
+            x =>
+              String(x.inspectorID) ===
+              String(user.inspectorID)
+          );
+      } catch (e) {
+        currentInspector = null;
+      }
     }
-    finishInitialLoading();
     if (currentInspector) {
       showApp();
     } else {
       showInspectorSelection();
     }
   } catch (error) {
-    finishInitialLoading();
     showError(error);
   }
 }
-
 /* =====================================================
-   Inspector / Routing (簡化版)
+   Inspector
    ===================================================== */
 function showInspectorSelection() {
   bottom(false);
-  let html = `<div class="page user-page"><div class="user-title">誰要進行巡檢？</div>`;
+  let html = `
+  <div class="page user-page">
+    <div class="user-title">
+      誰要進行巡檢？
+    </div>
+    <div class="user-subtitle">
+      請選擇本次簽核者
+    </div>
+  `;
   inspectors.forEach(user => {
-    html += `<button class="user-card" onclick="selectInspector('${escJS(user.inspectorID)}')">
-      <div class="avatar">${user.avatar ? `<img src="${esc(user.avatar)}">` : '👤'}</div>
-      <div><div class="user-name">${esc(user.name)}</div></div></button>`;
+    html += `
+    <button
+      class="user-card"
+      onclick="selectInspector('${escJS(user.inspectorID)}')">
+      <div class="avatar">
+        ${
+          user.avatar
+          ? `<img src="${esc(user.avatar)}">`
+          : '👤'
+        }
+      </div>
+      <div>
+        <div class="user-name">
+          ${esc(user.name)}
+        </div>
+        <div class="user-permission">
+          ${esc(user.permission || 'Inspector')}
+        </div>
+      </div>
+    </button>
+    `;
   });
-  if (!inspectors.length) html += `<div class="card">尚未建立簽核者。</div>`;
+  if (!inspectors.length) {
+    html += `
+    <div class="card">
+      尚未建立任何啟用中的簽核者。
+    </div>
+    `;
+  }
   html += `</div>`;
   app(html);
 }
 function selectInspector(id) {
-  currentInspector = inspectors.find(x => String(x.inspectorID) === String(id));
-  if (!currentInspector) return;
-  sessionStorage.setItem('currentInspector', JSON.stringify(currentInspector));
+  currentInspector =
+    inspectors.find(
+      x =>
+        String(x.inspectorID) ===
+        String(id)
+    );
+  if (!currentInspector)
+    return;
+  sessionStorage.setItem(
+    'currentInspector',
+    JSON.stringify(currentInspector)
+  );
   showApp();
 }
 function switchInspector() {
-  sessionStorage.removeItem('currentInspector');
+  sessionStorage.removeItem(
+    'currentInspector'
+  );
   currentInspector = null;
   showInspectorSelection();
 }
-function renderUserHeader() {
-  return `<div class="user-header">
-    <div class="current-user">
-      <div class="small-avatar">${currentInspector.avatar ? `<img src="${esc(currentInspector.avatar)}">` : '👤'}</div>
-      <div class="current-user-name">${esc(currentInspector.name)}</div>
-    </div>
-    <button class="switch-user" onclick="switchInspector()">切換</button>
-  </div>`;
+/* =====================================================
+   Main
+   ===================================================== */
+function showApp() {
+  bottom(true);
+  showHome();
 }
-
-function showApp() { bottom(true); showHome(); }
-async function refreshDashboard() { dashboard = await runServer('getDashboardData'); }
-function showHistory() { app(`<div class="page">${renderUserHeader()}<div class="title">檢核記錄 (開發中)</div></div>`); }
-function showIssues() { app(`<div class="page">${renderUserHeader()}<div class="title">異常追蹤 (開發中)</div></div>`); }
-function showAdmin() { app(`<div class="page">${renderUserHeader()}<div class="title">系統管理 (開發中)</div></div>`); }
-
+function renderUserHeader() {
+  return `
+  <div class="user-header">
+    <div class="current-user">
+      <div class="small-avatar">
+        ${
+          currentInspector.avatar
+          ? `<img src="${esc(currentInspector.avatar)}">`
+          : '👤'
+        }
+      </div>
+      <div class="current-user-name">
+        ${esc(currentInspector.name)}
+      </div>
+    </div>
+    <button
+      class="switch-user"
+      onclick="switchInspector()">
+      切換
+    </button>
+  </div>
+  `;
+}
+/* =====================================================
+   Home
+   ===================================================== */
 function showHome() {
   stopAllScanning();
-  app(`<div class="page">${renderUserHeader()}
-    <div class="title">太陽能系統巡檢</div>
-    <button class="menu-card" onclick="startPointScan()"><div class="menu-icon">📳</div><div><div class="menu-title">掃描點位</div></div></button>
-    <button class="menu-card" onclick="showPoints()"><div class="menu-icon">✓</div><div><div class="menu-title">進行檢核</div></div></button>
-  </div>`);
+  refreshDashboard()
+    .then(() => {
+      const completed =
+        dashboard.filter(
+          x => x.completedToday
+        ).length;
+      const total =
+        dashboard.length;
+      const remain =
+        total - completed;
+      const percent =
+        total
+        ? Math.round(
+            completed / total * 100
+          )
+        : 0;
+      let html = `
+      <div class="page">
+        ${renderUserHeader()}
+        <div class="title">
+          太陽能系統巡檢
+        </div>
+        <div class="subtitle">
+          今日巡檢
+        </div>
+        <div class="progress-card">
+          <div class="progress-label">
+            今日完成進度
+          </div>
+          <div class="progress-number">
+            ${completed} / ${total}
+          </div>
+          <div>
+            尚餘 ${remain} 個點位
+          </div>
+          <div
+            class="progress-bar"
+            style="margin-top:12px">
+            <div
+              class="progress-fill"
+              style="width:${percent}%">
+            </div>
+          </div>
+        </div>
+        <button
+          class="menu-card"
+          onclick="startPointScan()">
+          <div class="menu-icon">
+            📳
+          </div>
+          <div>
+            <div class="menu-title">
+              掃描點位
+            </div>
+            <div class="menu-description">
+              使用 NFC 或 QR Code 辨識巡檢點
+            </div>
+          </div>
+        </button>
+        <button
+          class="menu-card"
+          onclick="showPoints()">
+          <div class="menu-icon">
+            ✓
+          </div>
+          <div>
+            <div class="menu-title">
+              進行檢核
+            </div>
+            <div class="menu-description">
+              查看應檢、逾期與已完成點位
+            </div>
+          </div>
+        </button>
+        <button
+          class="menu-card"
+          onclick="showHistory()">
+          <div class="menu-icon">
+            ☷
+          </div>
+          <div>
+            <div class="menu-title">
+              檢核記錄
+            </div>
+            <div class="menu-description">
+              查詢歷史巡檢與量測資料
+            </div>
+          </div>
+        </button>
+        <button
+          class="menu-card"
+          onclick="showIssues()">
+          <div class="menu-icon">
+            !
+          </div>
+          <div>
+            <div class="menu-title">
+              異常追蹤
+            </div>
+            <div class="menu-description">
+              查看尚未結案的異常項目
+            </div>
+          </div>
+        </button>
+      `;
+      if (
+        String(currentInspector.permission)
+          .toLowerCase() === 'admin'
+      ) {
+        html += `
+        <button
+          class="menu-card"
+          onclick="showAdmin()">
+          <div class="menu-icon">
+            ⚙
+          </div>
+          <div>
+            <div class="menu-title">
+              系統管理
+            </div>
+            <div class="menu-description">
+              使用者與 Point 設定
+            </div>
+          </div>
+        </button>
+        `;
+      }
+      if (
+        completed === total &&
+        total > 0
+      ) {
+        html += `
+        <div class="big-check">
+          ✓
+        </div>
+        <div
+          style="text-align:center;color:#176b35">
+          今日定期巡檢全部完成
+        </div>
+        <div
+          style="text-align:center;color:#777;margin-top:8px">
+          仍可進行追加檢查
+        </div>
+        `;
+      }
+      html += `</div>`;
+      app(html);
+    });
 }
-
-function showPoints() {
+/* =====================================================
+   Points
+   ===================================================== */
+async function refreshDashboard() {
+  dashboard =
+    await runServer(
+      'getDashboardData'
+    );
+}
+async function showPoints() {
   stopAllScanning();
-  app(`<div class="page">${renderUserHeader()}
-    <button class="back-btn" onclick="showHome()">← 返回首頁</button>
-    <div class="title">進行檢核</div>
-    <button class="primary-btn" style="margin-bottom:16px" onclick="startPointScan()">📳 掃描 NFC / QR 點位</button>
-    ${points.map(p => `<button class="point-button" onclick="selectPoint('${escJS(p.pointID)}')">${esc(p.name)} - 手動檢查</button>`).join('')}
-  </div>`);
+  await refreshDashboard();
+  let html = `
+  <div class="page">
+    ${renderUserHeader()}
+    <button
+      class="back-btn"
+      onclick="showHome()">
+      ← 返回首頁
+    </button>
+    <div class="title">
+      進行檢核
+    </div>
+    <div class="subtitle">
+      今日剩餘
+      ${dashboard.filter(
+        x => !x.completedToday
+      ).length}
+      個點位
+    </div>
+    <button
+      class="primary-btn"
+      style="margin-bottom:16px"
+      onclick="startPointScan()">
+      📳 掃描 NFC / QR 點位
+    </button>
+  `;
+  dashboard.forEach(point => {
+    let cls = 'status-normal';
+    if (point.status === '今日應檢')
+      cls = 'status-today';
+    if (point.status === '逾期')
+      cls = 'status-overdue';
+    if (point.status === '尚未檢查')
+      cls = 'status-never';
+    if (point.status === '今日已完成')
+      cls = 'status-done';
+    html += `
+    <div class="point-card">
+      <div class="point-header">
+        <div>
+          <div class="point-name">
+            ${esc(point.name)}
+          </div>
+          <div class="point-id">
+            ${esc(point.pointID)}
+          </div>
+        </div>
+        <div class="status ${cls}">
+          ${esc(point.status)}
+        </div>
+      </div>
+      <div class="point-location">
+        ${esc(point.location || '')}
+      </div>
+      <div class="point-last">
+        上次檢查：
+        ${
+          point.lastInspectionDate
+          ? esc(point.lastInspectionDate)
+          : '尚未檢查'
+        }
+        ${
+          point.dueDate
+          ? `<br>下次應檢：${esc(point.dueDate)}`
+          : ''
+        }
+      </div>
+      <button
+        class="point-button"
+        onclick="selectPoint('${escJS(point.pointID)}')">
+        ${
+          point.completedToday
+          ? '再次檢查'
+          : '進行檢查'
+        }
+      </button>
+    </div>
+    `;
+  });
+  html += `</div>`;
+  app(html);
 }
-
+/* =====================================================
+   Scan Choice
+   ===================================================== */
 function startPointScan() {
   stopAllScanning();
   currentPoint = null;
   showScanChoice();
 }
-
 function selectPoint(id) {
-  currentPoint = points.find(p => String(p.pointID) === String(id));
-  if (!currentPoint) return;
+  currentPoint =
+    points.find(
+      p =>
+        String(p.pointID) ===
+        String(id)
+    );
+  if (!currentPoint)
+    return;
   showManualPointChoice();
 }
-
 function showManualPointChoice() {
-  app(`<div class="page">
-    <button class="back-btn" onclick="showPoints()">← 返回</button>
-    <div class="scan-title"><div class="title">${esc(currentPoint.name)}</div></div>
-    <button class="scan-option" onclick="alert('進入檢查表 (開發中)')"><div class="scan-icon">✓</div><div class="scan-option-title">手動確認開始檢查</div></button>
-  </div>`);
+  app(`
+  <div class="page">
+    <button
+      class="back-btn"
+      onclick="showPoints()">
+      ← 返回
+    </button>
+    <div class="scan-title">
+      <div class="title">
+        ${esc(currentPoint.name)}
+      </div>
+      <div class="scan-point">
+        ${esc(currentPoint.pointID)}
+      </div>
+    </div>
+    <button
+      class="scan-option"
+      onclick="loadPointByMethod('MANUAL')">
+      <div class="scan-icon">
+        ✓
+      </div>
+      <div class="scan-option-title">
+        手動確認
+      </div>
+      <div class="scan-option-description">
+        已從點位清單選擇此點
+      </div>
+    </button>
+    <button
+      class="secondary-btn"
+      onclick="startPointScan()">
+      改用 NFC / QR 掃描
+    </button>
+  </div>
+  `);
 }
-
 function showScanChoice() {
-  app(`<div class="page">
-    <button class="back-btn" onclick="showPoints()">← 返回</button>
-    <div class="scan-title"><div class="title">掃描巡檢點位</div></div>
-    <button class="scan-option" onclick="beginScan('NFC')"><div class="scan-icon">📳</div><div class="scan-option-title">NFC</div></button>
-    <button class="scan-option" onclick="beginScan('QR')"><div class="scan-icon">▦</div><div class="scan-option-title">QR Code</div></button>
-  </div>`);
+  app(`
+  <div class="page">
+    <button
+      class="back-btn"
+      onclick="showPoints()">
+      ← 返回
+    </button>
+    <div class="scan-title">
+      <div class="title">
+        掃描巡檢點位
+      </div>
+      <div class="scan-point">
+        請選擇掃描方式
+      </div>
+    </div>
+    <button
+      class="scan-option"
+      onclick="beginScan('NFC')">
+      <div class="scan-icon">
+        📳
+      </div>
+      <div class="scan-option-title">
+        NFC
+      </div>
+      <div class="scan-option-description">
+        主動啟動 NFC 掃描
+      </div>
+    </button>
+    <button
+      class="scan-option"
+      onclick="beginScan('QR')">
+      <div class="scan-icon">
+        ▦
+      </div>
+      <div class="scan-option-title">
+        QR Code
+      </div>
+      <div class="scan-option-description">
+        使用手機相機掃描 QR Code
+      </div>
+    </button>
+    <button
+      class="secondary-btn"
+      onclick="showPoints()">
+      改用手動選擇點位
+    </button>
+  </div>
+  `);
 }
-
+/* =====================================================
+   Real NFC / QR Scan
+   ===================================================== */
 async function beginScan(method) {
   currentMethod = method;
   stopAllScanning();
-  if (method === 'NFC') await startNFCScan();
-  if (method === 'QR') await startQRScan();
+  showLoading(method === 'NFC' ? '正在啟動 NFC 掃描' : '正在啟動相機與 QR 掃描器');
+  try {
+    if (method === 'NFC') {
+      await startNFCScan();
+      return;
+    }
+    if (method === 'QR') {
+      await startQRScan();
+      return;
+    }
+  } finally {
+    hideLoading();
+  }
 }
-
 /* =====================================================
-   NFC 掃描 (接續你斷掉的程式碼)
+   NFC
    ===================================================== */
 async function startNFCScan() {
   if (!('NDEFReader' in window)) {
-    showScannerError('此瀏覽器不支援 Web NFC。請使用 Android Chrome，或改用 QR Code。');
+    showScannerError(
+      '此瀏覽器不支援 Web NFC。請使用 Android Chrome，或改用 QR Code。'
+    );
     return;
   }
   app(`
   <div class="page scanner-page">
-    <button class="back-btn" onclick="stopNFCScan();showScanChoice()">← 返回</button>
-    <div class="scanner-title">NFC 掃描</div>
-    <div class="scanner-description">請將手機靠近巡檢點 NFC Tag</div>
-    <div class="card" style="text-align:center;padding:32px 18px">
-      <div style="font-size:70px">📳</div>
-      <div style="font-size:18px;font-weight:700;margin-top:15px">等待 NFC Tag</div>
-      <div id="scanner-status" class="scanner-status" style="margin-top:8px">正在啟動 NFC……</div>
+    <button
+      class="back-btn"
+      onclick="showScanChoice()">
+      ← 返回
+    </button>
+    <div class="scanner-title">
+      NFC 掃描
     </div>
-    <button class="secondary-btn" onclick="stopNFCScan();showScanChoice()">取消掃描</button>
+    <div class="scanner-description">
+      請將手機靠近巡檢點 NFC Tag
+    </div>
+    <div
+      class="card"
+      style="text-align:center;padding:32px 18px">
+      <div style="font-size:70px">
+        📳
+      </div>
+      <div
+        style="font-size:18px;font-weight:700;margin-top:15px">
+        等待 NFC Tag
+      </div>
+      <div
+        id="scanner-status"
+        class="scanner-status"
+        style="margin-top:8px">
+        正在啟動 NFC……
+      </div>
+    </div>
+    <button
+      class="secondary-btn"
+      onclick="stopNFCScan();showScanChoice()">
+      取消掃描
+    </button>
   </div>
   `);
   try {
-    nfcReader = new NDEFReader();
-    nfcAbortController = new AbortController();
+    nfcReader =
+      new NDEFReader();
+    nfcAbortController =
+      new AbortController();
     nfcReader.onreadingerror = () => {
       const el = document.getElementById('scanner-status');
       if (el) el.textContent = '無法讀取此 NFC Tag，請重新靠近';
     };
     nfcReader.onreading = event => handleNFCReading(event);
-    await nfcReader.scan({ signal: nfcAbortController.signal });
-    const status = document.getElementById('scanner-status');
-    if (status) status.textContent = 'NFC 已啟動，請靠近 Tag';
+    await nfcReader.scan({
+      signal: nfcAbortController.signal
+    });
+    const status =
+      document.getElementById(
+        'scanner-status'
+      );
+    if (status) {
+      status.textContent =
+        'NFC 已啟動，請靠近 Tag';
+    }
   } catch (error) {
-    if (error.name === 'AbortError') return;
-    showScannerError('NFC 啟動失敗：' + (error.message || error));
+    if (
+      error.name ===
+      'AbortError'
+    ) {
+      return;
+    }
+    showScannerError(
+      'NFC 啟動失敗：' +
+      (error.message || error)
+    );
   }
 }
-
 function handleNFCReading(event) {
   let pointID = null;
   try {
-    for (const record of event.message.records) {
-      const text = decodeNFCRecord(record);
-      if (!text) continue;
-      pointID = parsePointPayload(text);
-      if (pointID) break;
+    for (
+      const record
+      of event.message.records
+    ) {
+      const text =
+        decodeNFCRecord(record);
+      if (!text)
+        continue;
+      pointID =
+        parsePointPayload(text);
+      if (pointID)
+        break;
     }
   } catch (error) {
-    showScannerError('NFC 資料解析失敗：' + error.message);
+    showScannerError(
+      'NFC 資料解析失敗：' +
+      error.message
+    );
     return;
   }
   if (!pointID) {
-    showScannerError('這個 NFC Tag 不是本巡檢系統的點位 Tag。');
+    showScannerError(
+      '這個 NFC Tag 不是本巡檢系統的點位 Tag。'
+    );
     return;
   }
   stopNFCScan();
-  openScannedPoint(pointID, 'NFC');
+  openScannedPoint(
+    pointID,
+    'NFC'
+  );
 }
-
 function decodeNFCRecord(record) {
   try {
-    // 補齊原本斷掉的解碼邏輯
-    if (record.recordType === "text") {
-      const textDecoder = new TextDecoder(record.encoding || "utf-8");
-      return textDecoder.decode(record.data);
+    if (
+      record.recordType ===
+      'text'
+    ) {
+      return new TextDecoder(
+        record.encoding ||
+        'utf-8'
+      ).decode(
+        record.data
+      ).trim();
     }
-    return null;
-  } catch (e) { return null; }
-}
-
-function stopNFCScan() {
-  if (nfcAbortController) {
-    nfcAbortController.abort();
-    nfcAbortController = null;
+    if (
+      record.recordType ===
+      'url'
+    ) {
+      return new TextDecoder()
+        .decode(record.data)
+        .trim();
+    }
+    if (
+      record.recordType ===
+      'mime' ||
+      record.recordType ===
+      'unknown'
+    ) {
+      return new TextDecoder()
+        .decode(record.data)
+        .trim();
+    }
+  } catch (error) {
+    return '';
   }
+  return '';
 }
-
 /* =====================================================
-   QR 掃描 (雙軌相容版：Android 原生 + iOS jsQR)
+   QR (雙軌雙層相容版：Android 原生 + iOS jsQR)
    ===================================================== */
 async function startQRScan() {
+  useNativeBarcodeDetector = false;
+
+  // 1. 優先檢測原生 BarcodeDetector (例如 Android Chrome)
+  if ('BarcodeDetector' in window) {
+    try {
+      const formats = await BarcodeDetector.getSupportedFormats();
+      if (formats.includes('qr_code')) {
+        useNativeBarcodeDetector = true;
+        qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      }
+    } catch (error) {
+      useNativeBarcodeDetector = false;
+    }
+  }
+
+  // 渲染相機介面，包含 iOS 專用必要屬性與 jsQR 抽幀用的 hidden canvas
   app(`
   <div class="page scanner-page">
-    <button class="back-btn" onclick="stopQRScan(); showScanChoice()">← 返回</button>
-    <div class="scanner-title">QR Code 掃描</div>
-    <div class="scanner-description">請將鏡頭對準巡檢點的 QR Code</div>
+    <button
+      class="back-btn"
+      onclick="stopQRScan();showScanChoice()">
+      ← 返回
+    </button>
+    <div class="scanner-title">
+      QR Code 掃描
+    </div>
+    <div class="scanner-description">
+      將巡檢點 QR Code 放入框線內
+    </div>
     <div class="scanner-box">
-      <!-- 針對 iOS 必加 playsinline autoplay muted -->
-      <video id="qr-video" playsinline autoplay muted></video>
+      <video
+        id="qr-video"
+        autoplay
+        playsinline
+        muted>
+      </video>
       <div class="scanner-frame"></div>
     </div>
-    <div id="scanner-status" class="scanner-status">正在啟動相機...</div>
-    <button class="secondary-btn" onclick="stopQRScan(); showScanChoice()">取消掃描</button>
-    <!-- jsQR 處理影像資料專用的隱藏畫布 -->
+    <div
+      id="scanner-status"
+      class="scanner-status">
+      正在啟動相機……
+    </div>
+    <button
+      class="secondary-btn"
+      onclick="stopQRScan();showScanChoice()">
+      取消掃描
+    </button>
     <canvas id="qr-canvas" style="display:none;"></canvas>
   </div>
   `);
 
-  const video = document.getElementById('qr-video');
-  const canvasElement = document.getElementById('qr-canvas');
-  const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
-  const status = document.getElementById('scanner-status');
-
-  // 1. 偵測是否支援高效能的原生 BarcodeDetector
-  let nativeDetector = null;
-  if ('BarcodeDetector' in window) {
-    try {
-      nativeDetector = new BarcodeDetector({ formats: ['qr_code'] });
-    } catch (e) {
-      console.warn("原生 BarcodeDetector 初始化失敗，將使用 jsQR");
-    }
-  }
-
   try {
     qrStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" }
+      video: {
+        facingMode: {
+          ideal: 'environment'
+        }
+      },
+      audio: false
     });
-    
+    const video = document.getElementById('qr-video');
+    if (!video) return;
+
     video.srcObject = qrStream;
-    video.setAttribute("playsinline", true);
-    video.play();
-    
+    // 強制加上 playsinline 屬性，防範部分舊版 iOS Safari 播放攔截
+    video.setAttribute("playsinline", "true");
+    await video.play();
+
     qrScannerRunning = true;
-    requestAnimationFrame(tick);
-  } catch (error) {
-    status.innerHTML = `<span class="scanner-error">無法啟動相機，請檢查權限設定：${error.message}</span>`;
-  }
-
-  async function tick() {
-    if (!qrScannerRunning) return;
-    
-    if (video.readyState === video.HAVE_ENOUGH_DATA) {
-      let foundCode = null;
-
-      if (nativeDetector) {
-        // [路線 A] 使用 Android 原生 API 進行掃描
-        try {
-          const barcodes = await nativeDetector.detect(video);
-          if (barcodes.length > 0) foundCode = barcodes[0].rawValue;
-        } catch (e) { /* 忽略錯誤繼續下一幀 */ }
-      } else {
-        // [路線 B] 使用 iOS 相容的 jsQR 進行掃描
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-        const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        
-        if (typeof jsQR !== 'undefined') {
-          const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-          if (code) foundCode = code.data;
-        }
-      }
-
-      // 如果有解析到任何字串
-      if (foundCode) {
-        const pointID = parsePointPayload(foundCode);
-        if (pointID) {
-          stopQRScan();
-          openScannedPoint(pointID, 'QR');
-          return; // 成功找到點位，終止 tick
-        } else {
-          status.textContent = "偵測到 QR Code，但非系統點位格式";
-        }
-      } else {
-        status.textContent = "持續掃描中...";
-      }
+    const status = document.getElementById('scanner-status');
+    if (status) {
+      status.textContent = '相機已啟動，請對準 QR Code';
     }
-    // 繼續下一幀
-    qrAnimationFrame = requestAnimationFrame(tick);
+    scanQRFrame();
+  } catch (error) {
+    showScannerError(
+      '相機啟動失敗：' +
+      (error.message || error) +
+      '\n\n請確認已允許此網站使用相機。'
+    );
   }
 }
 
+async function scanQRFrame() {
+  if (!qrScannerRunning) return;
+
+  const video = document.getElementById('qr-video');
+  const canvasElement = document.getElementById('qr-canvas');
+
+  if (
+    !video ||
+    video.readyState < HTMLMediaElement.HAVE_ENOUGH_DATA
+  ) {
+    qrAnimationFrame = requestAnimationFrame(scanQRFrame);
+    return;
+  }
+
+  let rawData = null;
+
+  try {
+    if (useNativeBarcodeDetector && qrDetector) {
+      // 軌道 A：使用原生 BarcodeDetector 進行高效率解析
+      const codes = await qrDetector.detect(video);
+      if (codes.length) {
+        rawData = codes[0].rawValue;
+      }
+    } else if (typeof jsQR !== 'undefined' && canvasElement) {
+      // 軌道 B：使用 jsQR 畫布進行圖像降級解析 (iOS Safari)
+      const canvasContext = canvasElement.getContext('2d', { willReadFrequently: true });
+      canvasElement.height = video.videoHeight;
+      canvasElement.width = video.videoWidth;
+      canvasContext.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+      const imageData = canvasContext.getImageData(0, 0, canvasElement.width, canvasElement.height);
+      
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert"
+      });
+      if (code) {
+        rawData = code.data;
+      }
+    }
+  } catch (error) {
+    /* 單次讀取失敗不中斷即時掃描迴圈 */
+  }
+
+  if (rawData) {
+    // 呼叫原本完全保留的 parsePointPayload 驗證邏輯
+    const pointID = parsePointPayload(rawData);
+    if (pointID) {
+      stopQRScan();
+      openScannedPoint(pointID, 'QR');
+      return;
+    }
+  }
+
+  if (qrScannerRunning) {
+    qrAnimationFrame = requestAnimationFrame(scanQRFrame);
+  }
+}
+/* =====================================================
+   Payload Parser
+   ===================================================== */
+/*
+ * NFC / QR 建議寫入：
+ *
+ * PVINSPECT:P01
+ *
+ * 也接受：
+ *
+ * P01
+ *
+ * 或：
+ *
+ * https://你的網址...?point=P01
+ *
+ * 方便未來擴充。
+ */
+function parsePointPayload(payload) {
+  if (!payload)
+    return null;
+  const text =
+    String(payload).trim();
+  /*
+   * 標準格式：
+   *
+   * PVINSPECT:P01
+   */
+  const prefixMatch =
+    text.match(
+      /^PVINSPECT:([A-Za-z0-9_-]+)$/i
+    );
+  if (prefixMatch) {
+    return findPointID(
+      prefixMatch[1]
+    );
+  }
+  /*
+   * 直接寫 P01
+   */
+  if (
+    /^[A-Za-z0-9_-]+$/.test(text)
+  ) {
+    const point =
+      findPointID(text);
+    if (point)
+      return point;
+  }
+  /*
+   * 未來如果 QR / NFC 寫成 Web App URL
+   */
+  try {
+    const url =
+      new URL(text);
+    const pointID =
+      url.searchParams.get(
+        'point'
+      );
+    if (pointID) {
+      return findPointID(
+        pointID
+      );
+    }
+  } catch (error) {
+    /* 不是 URL，忽略 */
+  }
+  return null;
+}
+function findPointID(value) {
+  const point =
+    points.find(
+      p =>
+        String(p.pointID)
+          .toUpperCase() ===
+        String(value)
+          .toUpperCase()
+    );
+  return point
+    ? point.pointID
+    : null;
+}
+/* =====================================================
+   Open Scanned Point
+   ===================================================== */
+function openScannedPoint(
+  pointID,
+  method
+) {
+  const point =
+    points.find(
+      p =>
+        String(p.pointID) ===
+        String(pointID)
+    );
+  if (!point) {
+    showScannerError(
+      '無法辨識 PointID：' +
+      pointID
+    );
+    return;
+  }
+  currentPoint = point;
+  currentMethod = method;
+  loadPointData();
+}
+/* =====================================================
+   Scanner Stop
+   ===================================================== */
+function stopNFCScan() {
+  if (nfcAbortController) {
+    try {
+      nfcAbortController.abort();
+    } catch (e) {}
+  }
+  nfcAbortController = null;
+  nfcReader = null;
+}
 function stopQRScan() {
   qrScannerRunning = false;
+  qrDetector = null;
+  useNativeBarcodeDetector = false;
   if (qrAnimationFrame) {
-    cancelAnimationFrame(qrAnimationFrame);
+    cancelAnimationFrame(
+      qrAnimationFrame
+    );
     qrAnimationFrame = null;
   }
   if (qrStream) {
-    qrStream.getTracks().forEach(track => track.stop());
+    qrStream
+      .getTracks()
+      .forEach(
+        track =>
+          track.stop()
+      );
     qrStream = null;
   }
 }
-
 function stopAllScanning() {
   stopNFCScan();
   stopQRScan();
 }
-
+function showScannerError(message) {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    <button
+      class="back-btn"
+      onclick="showScanChoice()">
+      ← 返回掃描選擇
+    </button>
+    <div
+      class="card"
+      style="text-align:center;padding:30px 18px">
+      <div style="font-size:55px">
+        ⚠
+      </div>
+      <div
+        style="font-size:19px;font-weight:700;margin-top:15px">
+        無法啟動掃描
+      </div>
+      <div
+        style="white-space:pre-line;color:#777;margin-top:10px">
+        ${esc(message)}
+      </div>
+    </div>
+    <button
+      class="primary-btn"
+      onclick="showScanChoice()">
+      重新選擇掃描方式
+    </button>
+  </div>
+  `);
+}
 /* =====================================================
-   共同掃描處理邏輯
+   Manual / Point Data
    ===================================================== */
-function parsePointPayload(text) {
-  if (!text) return null;
-  // 假設你的 QR 或 NFC 寫的文字單純是點位 ID
-  return text.trim();
+function loadPointByMethod(method) {
+  currentMethod = method;
+  loadPointData();
 }
-
-function openScannedPoint(pointID, method) {
-  currentPoint = points.find(p => String(p.pointID) === String(pointID));
-  if (currentPoint) {
-    // 成功找到對應點位，進入檢核畫面 (這邊先導回手動確認頁，你可以自己改為直接進入檢查表)
-    showManualPointChoice();
-  } else {
-    // 找不到點位
-    showScannerError(`找不到點位代碼：${esc(pointID)}`);
+async function loadPointData() {
+  try {
+    checklist =
+      await runServer(
+        'getChecklist',
+        currentPoint.pointID
+      );
+    openIssues =
+      await runServer(
+        'getOpenIssues',
+        currentPoint.pointID
+      );
+    results = {};
+    issueReviews = {};
+    currentPhoto = null;
+    showChecklist();
+  } catch (error) {
+    showError(error);
   }
 }
-
-function showScannerError(msg) {
-  const el = document.getElementById('scanner-status');
-  if (el) {
-    el.innerHTML = `<span class="scanner-error">${esc(msg)}</span>`;
+/* =====================================================
+   Checklist
+   ===================================================== */
+function showChecklist() {
+  stopAllScanning();
+  let html = `
+  <div class="page">
+    <button
+      class="back-btn"
+      onclick="showPoints()">
+      ← 返回點位
+    </button>
+    <div class="title">
+      ${esc(currentPoint.name)}
+    </div>
+    <div class="subtitle">
+      ${esc(currentPoint.pointID)}
+      ｜${esc(currentMethod)}
+    </div>
+  `;
+  if (openIssues.length) {
+    html += `
+    <div class="section-title">
+      待追蹤異常
+    </div>
+    `;
+    openIssues.forEach(issue => {
+      html += `
+      <div class="issue-card">
+        <div class="issue-title">
+          ${esc(issue.abnormalStatus)}
+          ｜${esc(issue.itemID)}
+        </div>
+        <div>
+          ${esc(issue.content)}
+        </div>
+        <div class="issue-meta">
+          發現：
+          ${esc(issue.foundDate)}
+          <br>
+          一週後覆核：
+          ${esc(issue.weeklyReviewDate)}
+          <br>
+          下次定檢覆核：
+          ${esc(issue.regularReviewDate)}
+          <br>
+          狀態：
+          ${esc(issue.status)}
+        </div>
+        <div class="review-row">
+          <select
+            class="review-select"
+            onchange="setIssueReview(
+              '${escJS(issue.issueID)}',
+              this.value
+            )">
+            <option value="">
+              本次尚未覆核
+            </option>
+            <option value="已改善">
+              已改善
+            </option>
+            <option value="維持原狀">
+              維持原狀
+            </option>
+            <option value="惡化">
+              惡化
+            </option>
+          </select>
+          <input
+            class="note-box"
+            id="review-note-${esc(issue.issueID)}"
+            placeholder="覆核備註">
+        </div>
+      </div>
+      `;
+    });
+  }
+  html += `
+    <div class="section-title">
+      Checklist
+    </div>
+  `;
+  checklist.forEach((item, i) => {
+    html += `
+    <div class="check-item">
+      <div class="check-text">
+        ${i + 1}.
+        ${esc(item.item)}
+      </div>
+      <div class="result-buttons">
+        <button
+          id="ok-${esc(item.itemID)}"
+          class="result-btn"
+          onclick="setResult(
+            '${escJS(item.itemID)}',
+            'OK'
+          )">
+          ✓ 正常
+        </button>
+        <button
+          id="attention-${esc(item.itemID)}"
+          class="result-btn"
+          onclick="setResult(
+            '${escJS(item.itemID)}',
+            '注意'
+          )">
+          ! 注意
+        </button>
+        <button
+          id="ng-${esc(item.itemID)}"
+          class="result-btn"
+          onclick="setResult(
+            '${escJS(item.itemID)}',
+            'NG'
+          )">
+          ✕ NG
+        </button>
+      </div>
+      <div
+        id="note-${esc(item.itemID)}">
+      </div>
+    </div>
+    `;
+  });
+  /* =================================================
+     Measurements
+     ================================================= */
+  html += `
+  <div class="section-title">
+    量測資料
+  </div>
+  <div class="card">
+    <div class="measure-grid">
+      <input
+        id="m-pv"
+        class="measure-input"
+        type="number"
+        step="0.01"
+        placeholder="PV 電壓 V">
+      <input
+        id="m-diode"
+        class="measure-input"
+        type="number"
+        step="0.01"
+        placeholder="二極體後 V">
+      <input
+        id="m-bypass"
+        class="measure-input"
+        type="number"
+        step="0.01"
+        placeholder="Bypass 後 V">
+      <input
+        id="m-current"
+        class="measure-input"
+        type="number"
+        step="0.01"
+        placeholder="負載電流 A">
+      <input
+        id="m-power"
+        class="measure-input"
+        type="number"
+        step="0.01"
+        placeholder="輸出功率 W">
+      <input
+        id="m-temp"
+        class="measure-input"
+        type="number"
+        step="0.1"
+        placeholder="控制器溫度 °C">
+    </div>
+    <select
+      id="m-weather"
+      class="measure-input">
+      <option value="">
+        天氣狀況
+      </option>
+      <option>晴天</option>
+      <option>多雲</option>
+      <option>陰天</option>
+      <option>雨天</option>
+      <option>其他</option>
+    </select>
+  </div>
+  <div class="section-title">
+    現場照片
+  </div>
+  <div class="photo-box">
+    <input
+      id="photo"
+      type="file"
+      accept="image/*"
+      capture="environment"
+      onchange="previewPhoto(this)">
+    <div id="photo-preview"></div>
+  </div>
+  <div class="section-title">
+    檢查類型
+  </div>
+  <div class="card">
+    <select
+      id="inspection-type"
+      class="measure-input"
+      onchange="toggleAdditionalReason()">
+      <option value="定期">
+        定期檢查
+      </option>
+      <option value="追加">
+        追加檢查
+      </option>
+      <option value="異常覆核">
+        異常覆核
+      </option>
+    </select>
+    <div
+      id="additional-reason-area"
+      style="display:none">
+      <input
+        id="additional-reason"
+        class="measure-input"
+        placeholder="請填寫追加檢查原因">
+    </div>
+  </div>
+  <div style="margin-top:22px">
+    <button
+      id="submit-btn"
+      class="primary-btn"
+      onclick="submitInspection()">
+      完成此次檢查
+    </button>
+  </div>
+  </div>
+  `;
+  app(html);
+}
+/* =====================================================
+   Results
+   ===================================================== */
+function setResult(itemID, result) {
+  results[itemID] = {
+    result,
+    note: '',
+    reviewed: false
+  };
+  ['ok', 'attention', 'ng']
+    .forEach(type => {
+      const el =
+        document.getElementById(
+          `${type}-${itemID}`
+        );
+      if (el)
+        el.className =
+          'result-btn';
+    });
+  if (result === 'OK') {
+    document
+      .getElementById(
+        `ok-${itemID}`
+      )
+      .className +=
+        ' selected-ok';
+  }
+  if (result === '注意') {
+    document
+      .getElementById(
+        `attention-${itemID}`
+      )
+      .className +=
+        ' selected-attention';
+  }
+  if (result === 'NG') {
+    document
+      .getElementById(
+        `ng-${itemID}`
+      )
+      .className +=
+        ' selected-ng';
+  }
+  const box =
+    document.getElementById(
+      `note-${itemID}`
+    );
+  if (result === 'OK') {
+    box.innerHTML = '';
   } else {
-    alert(msg);
+    box.innerHTML = `
+      <textarea
+        id="note-input-${esc(itemID)}"
+        class="note-box"
+        placeholder="請填寫異常狀況或備註"></textarea>
+    `;
   }
 }
-
-// 啟動應用
+function setIssueReview(
+  issueID,
+  result
+) {
+  if (!result) {
+    delete issueReviews[issueID];
+    return;
+  }
+  issueReviews[issueID] = {
+    issueID,
+    result,
+    close: false,
+    note: ''
+  };
+}
+/* =====================================================
+   Photo
+   ===================================================== */
+function previewPhoto(input) {
+  const file =
+    input.files[0];
+  if (!file)
+    return;
+  currentPhoto = file;
+  const reader =
+    new FileReader();
+  reader.onload =
+    function(e) {
+      document
+        .getElementById(
+          'photo-preview'
+        )
+        .innerHTML = `
+        <img
+          class="photo-preview"
+          src="${e.target.result}">
+        `;
+    };
+  reader.readAsDataURL(file);
+}
+/* =====================================================
+   Inspection Type
+   ===================================================== */
+function toggleAdditionalReason() {
+  const type =
+    document.getElementById(
+      'inspection-type'
+    ).value;
+  document
+    .getElementById(
+      'additional-reason-area'
+    )
+    .style.display =
+      type === '追加'
+        ? 'block'
+        : 'none';
+}
+/* =====================================================
+   Submit
+   ===================================================== */
+async function submitInspection() {
+  const incomplete =
+    checklist.filter(
+      item =>
+        !results[item.itemID]
+    );
+  if (incomplete.length) {
+    alert(
+      `還有 ${incomplete.length} 個項目尚未判定。`
+    );
+    return;
+  }
+  for (const item of checklist) {
+    const r =
+      results[item.itemID];
+    if (
+      r.result === '注意' ||
+      r.result === 'NG'
+    ) {
+      const note =
+        document.getElementById(
+          `note-input-${item.itemID}`
+        );
+      if (
+        !note ||
+        !note.value.trim()
+      ) {
+        alert(
+          `「${item.item}」需要填寫備註。`
+        );
+        note?.focus();
+        return;
+      }
+      r.note =
+        note.value.trim();
+      r.itemText =
+        item.item;
+    }
+  }
+  const type =
+    document.getElementById(
+      'inspection-type'
+    ).value;
+  let additionalReason = '';
+  if (type === '追加') {
+    additionalReason =
+      document
+        .getElementById(
+          'additional-reason'
+        )
+        .value
+        .trim();
+    if (!additionalReason) {
+      alert(
+        '追加檢查必須填寫原因。'
+      );
+      return;
+    }
+  }
+  Object.keys(issueReviews)
+    .forEach(issueID => {
+      const input =
+        document.getElementById(
+          `review-note-${issueID}`
+        );
+      if (input) {
+        issueReviews[issueID].note =
+          input.value.trim();
+      }
+    });
+  const measurements = {
+    pvVoltage:
+      document.getElementById(
+        'm-pv'
+      ).value,
+    diodeVoltage:
+      document.getElementById(
+        'm-diode'
+      ).value,
+    bypassVoltage:
+      document.getElementById(
+        'm-bypass'
+      ).value,
+    loadCurrent:
+      document.getElementById(
+        'm-current'
+      ).value,
+    outputPower:
+      document.getElementById(
+        'm-power'
+      ).value,
+    controllerTemp:
+      document.getElementById(
+        'm-temp'
+      ).value,
+    weather:
+      document.getElementById(
+        'm-weather'
+      ).value
+  };
+  let photo = null;
+  if (currentPhoto) {
+    photo =
+      await fileToBase64(
+        currentPhoto
+      );
+  }
+  const btn =
+    document.getElementById(
+      'submit-btn'
+    );
+  btn.disabled = true;
+  btn.textContent =
+    '正在儲存……';
+  try {
+    await runServer(
+      'saveInspection',
+      {
+        inspectorName:
+          currentInspector.name,
+        inspectorID:
+          currentInspector.inspectorID,
+        pointID:
+          currentPoint.pointID,
+        method:
+          currentMethod,
+        inspectionType:
+          type,
+        additionalReason,
+        results:
+          checklist.map(item => ({
+            itemID:
+              item.itemID,
+            itemText:
+              item.item,
+            result:
+              results[item.itemID]
+                .result,
+            note:
+              results[item.itemID]
+                .note || '',
+            reviewed:
+              false
+          })),
+        issueReviews:
+          Object.values(
+            issueReviews
+          ),
+        measurements,
+        photo
+      }
+    );
+    todayInspections =
+      await runServer(
+        'getTodayInspections'
+      );
+    dashboard =
+      await runServer(
+        'getDashboardData'
+      );
+    showComplete();
+  } catch (error) {
+    btn.disabled = false;
+    btn.textContent =
+      '完成此次檢查';
+    alert(
+      '儲存失敗：\n' +
+      error.message
+    );
+  }
+}
+/* =====================================================
+   Complete
+   ===================================================== */
+function showComplete() {
+  const done =
+    dashboard.filter(
+      x => x.completedToday
+    ).length;
+  const total =
+    dashboard.length;
+  if (
+    done === total &&
+    total
+  ) {
+    app(`
+    <div class="page complete">
+      <div class="complete-icon">
+        ✓
+      </div>
+      <div class="complete-title">
+        今日全部完成
+      </div>
+      <div class="complete-description">
+        ${done} / ${total}
+        個定期巡檢點位已完成
+        <br><br>
+        仍可進行追加檢查或異常覆核。
+      </div>
+      <button
+        class="primary-btn"
+        onclick="showPoints()">
+        返回點位
+      </button>
+    </div>
+    `);
+    return;
+  }
+  app(`
+  <div class="page complete">
+    <div class="complete-icon">
+      ✓
+    </div>
+    <div class="complete-title">
+      檢查完成
+    </div>
+    <div class="complete-description">
+      ${esc(currentPoint.name)}
+      已完成。
+      <br><br>
+      今日還有
+      ${total - done}
+      個定期點位。
+    </div>
+    <button
+      class="primary-btn"
+      onclick="showPoints()">
+      返回未完成點位
+    </button>
+  </div>
+  `);
+}
+/* =====================================================
+   History
+   ===================================================== */
+async function showHistory() {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <div class="title">
+      檢核記錄
+    </div>
+    <div class="card">
+      <div class="filter-grid">
+        <input
+          id="filter-date"
+          class="filter-input"
+          type="date">
+        <select
+          id="filter-point"
+          class="filter-input">
+          <option value="">
+            全部 Point
+          </option>
+          ${points.map(p => `
+            <option value="${esc(p.pointID)}">
+              ${esc(p.pointID)}
+            </option>
+          `).join('')}
+        </select>
+      </div>
+      <select
+        id="filter-result"
+        class="filter-input">
+        <option value="">
+          全部結果
+        </option>
+        <option value="OK">
+          正常
+        </option>
+        <option value="注意">
+          注意
+        </option>
+        <option value="NG">
+          NG
+        </option>
+      </select>
+      <button
+        class="primary-btn"
+        style="margin-top:10px"
+        onclick="loadHistory()">
+        查詢
+      </button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+  `);
+  loadHistory();
+}
+async function loadHistory() {
+  const date =
+    document.getElementById(
+      'filter-date'
+    ).value;
+  const pointID =
+    document.getElementById(
+      'filter-point'
+    ).value;
+  const result =
+    document.getElementById(
+      'filter-result'
+    ).value;
+  const box = document.getElementById('history-list');
+  if (box) {
+    box.innerHTML = `
+      <div class="card" style="text-align:center;color:#777">
+        正在查詢巡檢記錄……
+      </div>
+    `;
+  }
+  const rows =
+    await runServer(
+      'getHistory',
+      {
+        date,
+        pointID,
+        result
+      }
+    );
+  if (!rows.length) {
+    box.innerHTML = `
+      <div class="card">
+        沒有符合條件的紀錄。
+      </div>
+    `;
+    return;
+  }
+  box.innerHTML =
+    rows.map(row => `
+    <div class="history-row">
+      <div>
+        <b>${esc(row.date)}</b>
+        ${esc(row.time)}
+      </div>
+      <div style="margin-top:5px">
+        ${esc(row.pointID)}
+        ｜${esc(row.inspector)}
+      </div>
+      <div>
+        ${esc(row.itemID)}
+      </div>
+      <div
+        class="history-result
+        ${
+          row.result === 'OK'
+          ? 'result-ok'
+          : row.result === 'NG'
+          ? 'result-ng'
+          : 'result-warning'
+        }">
+        ${esc(row.result)}
+      </div>
+      ${
+        row.note
+        ? `<div style="margin-top:5px">
+             ${esc(row.note)}
+           </div>`
+        : ''
+      }
+    </div>
+    `).join('');
+}
+/* =====================================================
+   Issues
+   ===================================================== */
+async function showIssues() {
+  stopAllScanning();
+  const issues =
+    await runServer(
+      'getIssues'
+    );
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <button
+      class="back-btn"
+      onclick="showHome()">
+      ← 返回
+    </button>
+    <div class="title">
+      異常追蹤
+    </div>
+    <div class="subtitle">
+      未結案異常會持續保留
+    </div>
+    <div id="issue-list"></div>
+  </div>
+  `);
+  const open =
+    issues.filter(
+      x =>
+        x.status !== '已結案'
+    );
+  const box =
+    document.getElementById(
+      'issue-list'
+    );
+  if (!open.length) {
+    box.innerHTML = `
+    <div
+      class="card"
+      style="text-align:center">
+      ✓
+      <br><br>
+      目前沒有未結案異常。
+    </div>
+    `;
+    return;
+  }
+  box.innerHTML =
+    open.map(issue => `
+    <div class="issue-card">
+      <div class="issue-title">
+        ${esc(issue.pointID)}
+        ｜${esc(issue.itemID)}
+      </div>
+      <div>
+        ${esc(issue.abnormalStatus)}
+      </div>
+      <div style="margin-top:8px">
+        ${esc(issue.content)}
+      </div>
+      <div class="issue-meta">
+        發現日期：
+        ${esc(issue.foundDate)}
+        <br>
+        一週後覆核：
+        ${esc(issue.weeklyReviewDate)}
+        <br>
+        下次定檢覆核：
+        ${esc(issue.regularReviewDate)}
+        <br>
+        狀態：
+        ${esc(issue.status)}
+        ${
+          issue.lastReviewDate
+          ? `<br>
+             最後覆核：
+             ${esc(issue.lastReviewDate)}
+             ｜${esc(issue.lastReviewResult)}`
+          : ''
+        }
+      </div>
+    </div>
+    `).join('');
+}
+/* =====================================================
+   Admin
+   ===================================================== */
+async function showAdmin() {
+  if (
+    String(currentInspector.permission)
+      .toLowerCase() !== 'admin'
+  ) {
+    alert(
+      '只有 Admin 可以進入系統管理。'
+    );
+    return;
+  }
+  app(`
+  <div class="page">
+    ${renderUserHeader()}
+    <button
+      class="back-btn"
+      onclick="showHome()">
+      ← 返回
+    </button>
+    <div class="title">
+      系統管理
+    </div>
+    <div class="section-title">
+      簽核者
+    </div>
+    <div class="card">
+      <input
+        id="admin-id"
+        class="measure-input"
+        placeholder="InspectorID">
+      <input
+        id="admin-name"
+        class="measure-input"
+        placeholder="姓名">
+      <input
+        id="admin-avatar"
+        class="measure-input"
+        placeholder="頭像URL">
+      <select
+        id="admin-permission"
+        class="measure-input">
+        <option value="Inspector">
+          Inspector
+        </option>
+        <option value="Admin">
+          Admin
+        </option>
+      </select>
+      <button
+        class="primary-btn"
+        style="margin-top:10px"
+        onclick="saveAdminInspector()">
+        新增／更新簽核者
+      </button>
+    </div>
+    <div class="section-title">
+      Point 檢查週期
+    </div>
+    <div id="admin-points"></div>
+  </div>
+  `);
+  document.getElementById(
+    'admin-points'
+  ).innerHTML =
+    points.map(point => `
+    <div class="card">
+      <b>
+        ${esc(point.pointID)}
+        ｜${esc(point.name)}
+      </b>
+      <input
+        id="interval-${esc(point.pointID)}"
+        class="measure-input"
+        type="number"
+        min="1"
+        value="${point.interval}"
+        placeholder="檢查週期（天）">
+      <button
+        class="secondary-btn"
+        style="margin-top:8px"
+        onclick="saveInterval('${escJS(point.pointID)}')">
+        儲存週期
+      </button>
+    </div>
+    `).join('');
+}
+async function saveAdminInspector() {
+  await runServer(
+    'saveInspector',
+    {
+      inspectorID:
+        document.getElementById(
+          'admin-id'
+        ).value.trim(),
+      name:
+        document.getElementById(
+          'admin-name'
+        ).value.trim(),
+      avatar:
+        document.getElementById(
+          'admin-avatar'
+        ).value.trim(),
+      enabled: true,
+      permission:
+        document.getElementById(
+          'admin-permission'
+        ).value
+    }
+  );
+  alert(
+    '已儲存簽核者。'
+  );
+}
+async function saveInterval(pointID) {
+  const value =
+    document.getElementById(
+      `interval-${pointID}`
+    ).value;
+  if (
+    !value ||
+    Number(value) <= 0
+  ) {
+    alert(
+      '請輸入正確的天數。'
+    );
+    return;
+  }
+  await runServer(
+    'updatePointInterval',
+    pointID,
+    Number(value)
+  );
+  alert(
+    '檢查週期已更新。'
+  );
+}
+/* =====================================================
+   File
+   ===================================================== */
+function fileToBase64(file) {
+  return new Promise(
+    (resolve, reject) => {
+      const reader =
+        new FileReader();
+      reader.onload = () => {
+        const result =
+          reader.result;
+        const comma =
+          result.indexOf(',');
+        resolve({
+          name:
+            file.name,
+          mimeType:
+            file.type,
+          data:
+            result.substring(
+              comma + 1
+            )
+        });
+      };
+      reader.onerror =
+        reject;
+      reader.readAsDataURL(
+        file
+      );
+    }
+  );
+}
+/* =====================================================
+   Helpers
+   ===================================================== */
+function app(html) {
+  document
+    .getElementById('app')
+    .innerHTML = html;
+}
+function bottom(show) {
+  document
+    .getElementById(
+      'bottomNav'
+    )
+    .style.display =
+      show
+      ? 'flex'
+      : 'none';
+}
+function esc(value) {
+  if (
+    value === null ||
+    value === undefined
+  )
+    return '';
+  return String(value)
+    .replace(
+      /&/g,
+      '&amp;'
+    )
+    .replace(
+      /</g,
+      '&lt;'
+    )
+    .replace(
+      />/g,
+      '&gt;'
+    )
+    .replace(
+      /"/g,
+      '&quot;'
+    )
+    .replace(
+      /'/g,
+      '&#039;'
+    );
+}
+function escJS(value) {
+  return String(value)
+    .replace(
+      /\\/g,
+      '\\\\'
+    )
+    .replace(
+      /'/g,
+      "\\'"
+    )
+    .replace(
+      /"/g,
+      '\\"'
+    );
+}
+function showError(error) {
+  stopAllScanning();
+  app(`
+  <div class="page">
+    <div class="title">
+      發生錯誤
+    </div>
+    <div class="card">
+      ${esc(
+        error?.message ||
+        error
+      )}
+    </div>
+    <button
+      class="primary-btn"
+      onclick="location.reload()">
+      重新載入
+    </button>
+  </div>
+  `);
+}
+/* =====================================================
+   Legacy URL Scan Compatibility
+   ===================================================== */
+/*
+ * 保留舊版 URL 入口相容性。
+ *
+ * 例如：
+ *
+ * ?point=P01&method=NFC
+ *
+ * 未來如果你真的需要把 NFC / QR
+ * 寫成網址，仍然可以使用。
+ *
+ * 但現在的主要 NFC / QR 流程
+ * 已經改成「App 主動掃描」。
+ */
+function checkScanURL() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+  const pointID =
+    params.get('point');
+  const method =
+    params.get('method');
+  if (
+    !pointID ||
+    !method
+  )
+    return;
+  window.pendingScan = {
+    pointID,
+    method
+  };
+}
+/* =====================================================
+   Init with URL Compatibility
+   ===================================================== */
+const originalInit = init;
+init = async function() {
+  checkScanURL();
+  try {
+    await originalInit();
+    if (
+      window.pendingScan &&
+      currentInspector
+    ) {
+      openScannedPoint(
+        window.pendingScan.pointID,
+        window.pendingScan.method
+      );
+      window.pendingScan = null;
+    }
+  } finally {
+    finishInitialLoading();
+  }
+};
 init();
 </script>
 </body>
