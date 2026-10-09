@@ -1,140 +1,554 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>太陽能系統巡檢</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    html {
-      width: 100%;
-      min-height: 100%;
-      -webkit-text-size-adjust: 100%;
-    }
-    body {
-      margin: 0;
-      width: 100%;
-      min-height: 100vh;
-      background: #f5f6f8;
-      color: #202124;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      font-size: 16px;
-      line-height: 1.5;
-      padding-bottom: calc(76px + env(safe-area-inset-bottom));
-    }
-    button, input, textarea, select {
-      font-family: inherit;
-      font-size: 16px;
-    }
-    button {
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    button:disabled {
-      opacity: .55;
-      cursor: default;
-    }
-    input, textarea, select {
-      -webkit-appearance: none;
-      appearance: none;
-    }
-    /* ===================================================== App Layout ===================================================== */
-    #app { width: 100%; min-height: 100vh; }
-    .page { width: 100%; max-width: 480px; min-height: calc(100vh - 76px); margin: 0 auto; padding: 16px; }
-    /* ===================================================== Typography ===================================================== */
-    .title { font-size: 24px; font-weight: 700; line-height: 1.25; margin-bottom: 6px; }
-    .subtitle { color: #777; font-size: 15px; margin-bottom: 20px; }
-    .section-title { font-size: 19px; font-weight: 700; margin: 24px 0 12px; }
-    .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    /* ===================================================== Buttons ===================================================== */
-    .primary-btn { width: 100%; min-height: 50px; border: 0; border-radius: 14px; padding: 13px 16px; background: #222; color: #fff; font-size: 16px; font-weight: 600; }
-    .secondary-btn { width: 100%; min-height: 48px; border: 0; border-radius: 14px; padding: 12px 16px; background: #e9eaec; font-size: 16px; }
-    .back-btn { min-height: 44px; border: 0; background: none; padding: 4px 0; margin-bottom: 12px; color: #555; font-size: 16px; }
-    /* ===================================================== User Selection ===================================================== */
-    .user-page { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding-top: 32px; padding-bottom: 32px; }
-    .user-title { text-align: center; font-size: 27px; font-weight: 700; }
-    .user-subtitle { text-align: center; color: #777; margin: 8px 0 24px; }
-    .user-card { width: 100%; min-height: 82px; border: 0; background: #fff; border-radius: 18px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .avatar { width: 56px; height: 56px; border-radius: 50%; background: #e8e8e8; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
-    .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .user-name { font-size: 18px; font-weight: 600; }
-    .user-permission { color: #888; font-size: 13px; margin-top: 3px; }
-    /* ===================================================== Header ===================================================== */
-    .user-header { display: flex; justify-content: space-between; align-items: center; min-height: 44px; margin-bottom: 16px; }
-    .current-user { display: flex; align-items: center; gap: 10px; }
-    .small-avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; background: #ddd; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-    .small-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .current-user-name { font-size: 15px; font-weight: 600; }
-    .switch-user { min-height: 40px; border: 0; background: none; padding: 8px; color: #777; font-size: 15px; }
-    /* ===================================================== Progress ===================================================== */
-    .progress-card { background: #222; color: white; border-radius: 20px; padding: 20px; margin-bottom: 16px; }
-    .progress-label { opacity: .7; font-size: 14px; }
-    .progress-number { font-size: 36px; font-weight: 700; margin: 4px 0; }
-    .progress-bar { height: 8px; background: #555; border-radius: 10px; overflow: hidden; }
-    .progress-fill { height: 100%; background: white; transition: .3s; }
-    /* ===================================================== Home Menu ===================================================== */
-    .menu-card { width: 100%; min-height: 76px; border: 0; background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; display: flex; gap: 15px; align-items: center; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
-    .menu-icon { font-size: 27px; width: 42px; text-align: center; flex-shrink: 0; }
-    .menu-title { font-size: 17px; font-weight: 600; }
-    .menu-description { color: #888; font-size: 14px; margin-top: 3px; }
-    /* ===================================================== Point ===================================================== */
-    .point-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
-    .point-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .point-name { font-size: 18px; font-weight: 700; }
-    .point-id { color: #888; font-size: 13px; margin-top: 3px; }
-    .point-location { color: #777; font-size: 14px; margin-top: 8px; }
-    .point-last { margin-top: 10px; font-size: 13px; color: #666; }
-    .status { padding: 5px 9px; border-radius: 20px; font-size: 12px; white-space: nowrap; height: max-content; }
-    .status-normal { background: #e2f3e7; color: #176b35; }
-    .status-today { background: #fff0b8; color: #745700; }
-    .status-overdue { background: #ffe1e1; color: #a51d16; }
-    .status-never { background: #ffe1e1; color: #a51d16; }
-    .status-done { background: #dff5e5; color: #176b35; }
-    .point-button { width: 100%; min-height: 48px; margin-top: 14px; padding: 11px; border: 0; border-radius: 12px; background: #222; color: white; font-size: 16px; font-weight: 600; }
-    /* ===================================================== Scan ===================================================== */
-    .scan-title { text-align: center; margin-top: 16px; }
-    .scan-point { font-size: 19px; font-weight: 700; margin: 10px 0 24px; }
-    .scan-option { width: 100%; min-height: 150px; border: 0; background: white; border-radius: 18px; padding: 24px 18px; margin-bottom: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .scan-icon { font-size: 44px; line-height: 1; margin-bottom: 12px; }
-    .scan-option-title { font-size: 19px; font-weight: 700; }
-    .scan-option-description { color: #888; font-size: 14px; margin-top: 6px; }
-    /* ===================================================== Scanner ===================================================== */
-    .scanner-page { text-align: center; }
-    .scanner-title { font-size: 23px; font-weight: 700; margin-top: 8px; }
-    .scanner-description { color: #777; margin-top: 6px; margin-bottom: 18px; }
-    .scanner-box { 
-      width: 100%; 
-      max-width: 320px; 
-      aspect-ratio: 1 / 1; 
-      margin: 0 auto 16px auto; 
-      background: #111; 
-      border-radius: 20px; 
-      overflow: hidden; 
-      position: relative; 
-    }
-    .scanner-box video {
-      object-fit: cover !important;
-    }
-    .scanner-status { min-height: 25px; color: #666; margin-bottom: 12px; }
-    .scanner-error { color: #a51d16; margin-top: 10px; font-weight: 600; }
-    /* ===================================================== Bottom Navigation ===================================================== */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; min-height: 68px; padding-bottom: env(safe-area-inset-bottom); background: rgba(255,255,255,.97); border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; z-index: 100; backdrop-filter: blur(12px); }
-    .nav-btn { min-width: 72px; min-height: 58px; padding: 6px 8px; background: none; border: 0; color: #777; font-size: 12px; text-align: center; }
-    .nav-icon { display: block; font-size: 22px; line-height: 1.1; margin-bottom: 2px; }
-    /* ===================================================== Global Loading Overlay ===================================================== */
-    #loadingOverlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(245, 246, 248, .88); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); opacity: 1; visibility: visible; transition: opacity .18s ease, visibility .18s ease; }
-    #loadingOverlay.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loading-panel { width: min(100%, 300px); padding: 28px 22px; border-radius: 20px; background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.12); text-align: center; }
-    .loading-spinner { width: 54px; height: 54px; margin: 0 auto 18px; border: 5px solid #e5e7eb; border-top-color: #222; border-right-color: #555; border-radius: 50%; animation: loading-spin .78s linear infinite; }
-    .loading-title { font-size: 18px; font-weight: 700; color: #202124; }
-    .loading-message { margin-top: 7px; color: #777; font-size: 14px; line-height: 1.55; }
-    .loading-dots::after { content: ''; display: inline-block; width: 1.4em; text-align: left; animation: loading-dots 1.25s steps(4, end) infinite; }
-    @keyframes loading-spin { to { transform: rotate(360deg); } }
-    @keyframes loading-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75%, 100% { content: '...'; } }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>太陽能系統巡檢</title>
+<!-- 引入 jsQR 庫，解決 iOS Safari 不支援 BarcodeDetector 的問題 -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<style>
+* {
+  box-sizing: border-box;
+}
+html {
+  width: 100%;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f6f8;
+  color: #202124;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  padding-bottom: calc(76px + env(safe-area-inset-bottom));
+}
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+input,
+textarea,
+select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+/* =====================================================
+   App Layout
+   ===================================================== */
+#app {
+  width: 100%;
+  min-height: 100vh;
+}
+.page {
+  width: 100%;
+  max-width: 480px;
+  min-height: calc(100vh - 76px);
+  margin: 0 auto;
+  padding: 16px;
+}
+/* =====================================================
+   Typography
+   ===================================================== */
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+.subtitle {
+  color: #777;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 24px 0 12px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+/* =====================================================
+   Buttons
+   ===================================================== */
+.primary-btn {
+  width: 100%;
+  min-height: 50px;
+  border: 0;
+  border-radius: 14px;
+  padding: 13px 16px;
+  background: #222;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+.secondary-btn {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: #e9eaec;
+  font-size: 16px;
+}
+.back-btn {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  margin-bottom: 12px;
+  color: #555;
+  font-size: 16px;
+}
+/* =====================================================
+   User Selection
+   ===================================================== */
+.user-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+.user-title {
+  text-align: center;
+  font-size: 27px;
+  font-weight: 700;
+}
+.user-subtitle {
+  text-align: center;
+  color: #777;
+  margin: 8px 0 24px;
+}
+.user-card {
+  width: 100%;
+  min-height: 82px;
+  border: 0;
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.user-name {
+  font-size: 18px;
+  font-weight: 600;
+}
+.user-permission {
+  color: #888;
+  font-size: 13px;
+  margin-top: 3px;
+}
+/* =====================================================
+   Header
+   ===================================================== */
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 44px;
+  margin-bottom: 16px;
+}
+.current-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.small-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+.small-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.current-user-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.switch-user {
+  min-height: 40px;
+  border: 0;
+  background: none;
+  padding: 8px;
+  color: #777;
+  font-size: 15px;
+}
+/* =====================================================
+   Progress
+   ===================================================== */
+.progress-card {
+  background: #222;
+  color: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.progress-label {
+  opacity: .7;
+  font-size: 14px;
+}
+.progress-number {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 4px 0;
+}
+.progress-bar {
+  height: 8px;
+  background: #555;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: white;
+  transition: .3s;
+}
+/* =====================================================
+   Home Menu
+   ===================================================== */
+.menu-card {
+  width: 100%;
+  min-height: 76px;
+  border: 0;
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.menu-icon {
+  font-size: 27px;
+  width: 42px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.menu-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+.menu-description {
+  color: #888;
+  font-size: 14px;
+  margin-top: 3px;
+}
+/* =====================================================
+   Point
+   ===================================================== */
+.point-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.point-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.point-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+.point-id {
+  color: #888;
+  font-size: 13px;
+  margin-top: 3px;
+}
+.point-location {
+  color: #777;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.point-last {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+.status {
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  white-space: nowrap;
+  height: max-content;
+}
+.status-normal {
+  background: #e2f3e7;
+  color: #176b35;
+}
+.status-today {
+  background: #fff0b8;
+  color: #745700;
+}
+.status-overdue {
+  background: #ffe1e1;
+  color: #a51d16;
+}
+.status-never {
+  background: #ffe1e1;
+  color: #a51d16;
+}
+.status-done {
+  background: #dff5e5;
+  color: #176b35;
+}
+.point-button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 14px;
+  padding: 11px;
+  border: 0;
+  border-radius: 12px;
+  background: #222;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+/* =====================================================
+   Scan
+   ===================================================== */
+.scan-title {
+  text-align: center;
+  margin-top: 16px;
+}
+.scan-point {
+  font-size: 19px;
+  font-weight: 700;
+  margin: 10px 0 24px;
+}
+.scan-option {
+  width: 100%;
+  min-height: 150px;
+  border: 0;
+  background: white;
+  border-radius: 18px;
+  padding: 24px 18px;
+  margin-bottom: 14px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.scan-icon {
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+.scan-option-title {
+  font-size: 19px;
+  font-weight: 700;
+}
+.scan-option-description {
+  color: #888;
+  font-size: 14px;
+  margin-top: 6px;
+}
+/* =====================================================
+   Scanner
+   ===================================================== */
+.scanner-page {
+  text-align: center;
+}
+.scanner-title {
+  font-size: 23px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.scanner-description {
+  color: #777;
+  margin-top: 6px;
+  margin-bottom: 18px;
+}
+.scanner-box {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #111;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 16px;
+}
+#qr-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.scanner-frame {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 15%;
+  bottom: 15%;
+  border: 3px solid white;
+  border-radius: 18px;
+  pointer-events: none;
+  box-shadow: 0 0 0 999px rgba(0,0,0,.20);
+}
+.scanner-status {
+  min-height: 25px;
+  color: #666;
+  margin-bottom: 12px;
+}
+.scanner-error {
+  color: #a51d16;
+}
+/* =====================================================
+   Bottom Navigation & Global Loading
+   ===================================================== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: 68px;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255,255,255,.97);
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+}
+.nav-btn {
+  min-width: 72px;
+  min-height: 58px;
+  padding: 6px 8px;
+  background: none;
+  border: 0;
+  color: #777;
+  font-size: 12px;
+  text-align: center;
+}
+.nav-icon {
+  display: block;
+  font-size: 22px;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(245, 246, 248, .88);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+#loadingOverlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loading-panel {
+  width: min(100%, 300px);
+  padding: 28px 22px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  text-align: center;
+}
+.loading-spinner {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 18px;
+  border: 5px solid #e5e7eb;
+  border-top-color: #222;
+  border-right-color: #555;
+  border-radius: 50%;
+  animation: loading-spin .78s linear infinite;
+}
+.loading-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202124;
+}
+.loading-message {
+  margin-top: 7px;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.loading-dots::after {
+  content: '';
+  display: inline-block;
+  width: 1.4em;
+  text-align: left;
+  animation: loading-dots 1.25s steps(4, end) infinite;
+}
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes loading-dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75%, 100% { content: '...'; }
+}
+</style>
 </head>
 <body>
 <div id="app"></div>
@@ -154,352 +568,145 @@
 </div>
 
 <script>
-// 基礎工具韓數
-function app(html) { document.getElementById('app').innerHTML = html; }
-function bottom(show) { document.getElementById('bottomNav').style.display = show ? 'flex' : 'none'; }
-function esc(str) { return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-function escJS(str) { return String(str || '').replace(/'/g, "\\'"); }
-
 let inspectors = [];
 let points = [];
 let dashboard = [];
 let todayInspections = [];
 let currentInspector = null;
 let currentPoint = null;
+let checklist = [];
+let results = {};
 let currentMethod = '';
+let openIssues = [];
+let issueReviews = {};
+let currentPhoto = null;
 
 /* Scanner State */
-let html5QrScanner = null;
 let nfcReader = null;
 let nfcAbortController = null;
+let qrStream = null;
+let qrDetector = null;
+let qrScannerRunning = false;
+let qrAnimationFrame = null;
 
-/* Loading State */
-let loadingCount = 0;
-let initialLoading = true;
-let loadingMessageText = '正在載入資料';
+/* Helper functions */
+function esc(str) { return str ? String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) : ''; }
+function escJS(str) { return str ? String(str).replace(/'/g, "\\'") : ''; }
+function app(html) { document.getElementById('app').innerHTML = html; }
+function bottom(show) { document.getElementById('bottomNav').style.display = show ? 'flex' : 'none'; }
+function showError(err) { alert('發生錯誤: ' + (err.message || err)); }
 
-function renderLoadingState() {
-  const overlay = document.getElementById('loadingOverlay');
-  const message = document.getElementById('loadingMessage');
-  if (!overlay) return;
-  if (message) message.innerHTML = `${esc(loadingMessageText)}<span class="loading-dots"></span>`;
-  const shouldShow = initialLoading || loadingCount > 0;
-  overlay.classList.toggle('is-hidden', !shouldShow);
-}
-function showLoading(msg = '正在載入資料') { loadingCount++; loadingMessageText = msg; renderLoadingState(); }
-function hideLoading() { loadingCount = Math.max(0, loadingCount - 1); renderLoadingState(); }
-function finishInitialLoading() { initialLoading = false; renderLoadingState(); }
-
-/* API 連線 */
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbySwcWW5i0s9LJOJWSah51PNDZ7fzGTh_qvxZPk3jks3uT_FgHjVP1BVLSufqalRkQDbg/exec';
-async function runServer(name, ...args) {
-  showLoading('正在與巡檢系統連線');
-  try {
-    const response = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: name, args })
-    });
-    if (!response.ok) throw new Error('巡檢 API 回應 HTTP ' + response.status);
-    const payload = await response.json();
-    if (!payload.success) throw new Error(payload.error || 'API 執行失敗');
-    return payload.data;
-  } catch (error) {
-    alert('系統連線失敗：' + error.message);
-    throw error;
-  } finally {
-    hideLoading();
-  }
-}
-
-/* 初始化 */
-window.addEventListener('DOMContentLoaded', init);
-async function init() {
-  try {
-    await runServer('setupSystem');
-    const data = await Promise.all([
-      runServer('getInspectors'),
-      runServer('getPoints'),
-      runServer('getDashboardData'),
-      runServer('getTodayInspections')
-    ]);
-    inspectors = data[0];
-    points = data[1];
-    dashboard = data[2];
-    todayInspections = data[3];
-
-    const saved = sessionStorage.getItem('currentInspector');
-    if (saved) {
-      try {
-        const user = JSON.parse(saved);
-        currentInspector = inspectors.find(x => String(x.inspectorID) === String(user.inspectorID));
-      } catch (e) { currentInspector = null; }
-    }
-    finishInitialLoading();
-    if (currentInspector) showApp(); else showInspectorSelection();
-  } catch (error) {
-    finishInitialLoading();
-  }
-}
-
-/* 簽核者選擇 */
-function showInspectorSelection() {
-  bottom(false);
-  let html = `<div class="page user-page"><div class="user-title">誰要進行巡檢？</div><div class="user-subtitle">請選擇本次簽核者</div>`;
-  inspectors.forEach(user => {
-    html += `
-    <button class="user-card" onclick="selectInspector('${escJS(user.inspectorID)}')">
-      <div class="avatar">${user.avatar ? `<img src="${esc(user.avatar)}">` : '👤'}</div>
-      <div>
-        <div class="user-name">${esc(user.name)}</div>
-        <div class="user-permission">${esc(user.permission || 'Inspector')}</div>
-      </div>
-    </button>`;
-  });
-  html += `</div>`;
-  app(html);
-}
-
-function selectInspector(id) {
-  currentInspector = inspectors.find(x => String(x.inspectorID) === String(id));
-  if (!currentInspector) return;
-  sessionStorage.setItem('currentInspector', JSON.stringify(currentInspector));
-  showApp();
-}
-
-function switchInspector() {
-  sessionStorage.removeItem('currentInspector');
-  currentInspector = null;
-  showInspectorSelection();
-}
-
-function showApp() { bottom(true); showHome(); }
-
-function renderUserHeader() {
-  return `
-  <div class="user-header">
-    <div class="current-user">
-      <div class="small-avatar">${currentInspector.avatar ? `<img src="${esc(currentInspector.avatar)}">` : '👤'}</div>
-      <div class="current-user-name">${esc(currentInspector.name)}</div>
-    </div>
-    <button class="switch-user" onclick="switchInspector()">切換</button>
-  </div>`;
-}
-
-function showHome() {
-  stopAllScanning();
-  refreshDashboard().then(() => {
-    const completed = dashboard.filter(x => x.completedToday).length;
-    const total = dashboard.length;
-    const percent = total ? Math.round(completed / total * 100) : 0;
-    
-    let html = `
-    <div class="page">
-      ${renderUserHeader()}
-      <div class="title">太陽能系統巡檢</div>
-      <div class="subtitle">今日巡檢</div>
-      <div class="progress-card">
-        <div class="progress-label">今日完成進度</div>
-        <div class="progress-number">${completed} / ${total}</div>
-        <div class="progress-bar" style="margin-top:12px">
-          <div class="progress-fill" style="width:${percent}%"></div>
-        </div>
-      </div>
-      <button class="menu-card" onclick="startPointScan()">
-        <div class="menu-icon">📳</div>
-        <div>
-          <div class="menu-title">掃描點位</div>
-          <div class="menu-description">使用 NFC 或 QR Code 辨識巡檢點</div>
-        </div>
-      </button>
-      <button class="menu-card" onclick="showPoints()">
-        <div class="menu-icon">✓</div>
-        <div>
-          <div class="menu-title">進行檢核</div>
-          <div class="menu-description">查看應檢、逾期與已完成點位</div>
-        </div>
-      </button>
-    </div>`;
-    app(html);
-  });
-}
-
-async function refreshDashboard() { dashboard = await runServer('getDashboardData'); }
-
-function showPoints() {
-  stopAllScanning();
-  let html = `
-  <div class="page">
-    ${renderUserHeader()}
-    <button class="back-btn" onclick="showHome()">← 返回首頁</button>
-    <div class="title">進行檢核</div>
-    <button class="primary-btn" style="margin-bottom:16px" onclick="startPointScan()">📳 掃描 NFC / QR 點位</button>`;
-  dashboard.forEach(point => {
-    html += `
-    <div class="point-card">
-      <div class="point-header">
-        <div class="point-name">${esc(point.name)}</div>
-        <div class="status status-normal">${esc(point.status)}</div>
-      </div>
-      <button class="point-button" onclick="selectPoint('${escJS(point.pointID)}')">進行檢查</button>
-    </div>`;
-  });
-  html += `</div>`;
-  app(html);
-}
-
-function selectPoint(id) {
-  currentPoint = points.find(p => String(p.pointID) === String(id));
-  if (!currentPoint) return;
-  alert(`進入點位：${currentPoint.name} (${currentPoint.pointID})`);
-  // 在這裡載入 Checklist View
-}
-
-function startPointScan() { stopAllScanning(); showScanChoice(); }
-
-function showScanChoice() {
+/* QR Code 掃描核心邏輯 (含 iOS 相容 Fallback) */
+async function startQRScan() {
   app(`
-  <div class="page">
-    <button class="back-btn" onclick="showPoints()">← 返回</button>
-    <div class="scan-title">
-      <div class="title">掃描巡檢點位</div>
-      <div class="scan-point">請選擇掃描方式</div>
+  <div class="page scanner-page">
+    <button class="back-btn" onclick="stopQRScan();showScanChoice()">← 返回</button>
+    <div class="scanner-title">QR Code 掃描</div>
+    <div class="scanner-description">將巡檢點的 QR Code 對準下方對焦框</div>
+    <div class="scanner-box">
+      <!-- iOS 必要屬性: playsinline 和 webkit-playsinline -->
+      <video id="qr-video" autoplay playsinline webkit-playsinline muted></video>
+      <div class="scanner-frame"></div>
     </div>
-    <button class="scan-option" onclick="beginScan('NFC')">
-      <div class="scan-icon">📳</div>
-      <div class="scan-option-title">NFC</div>
-    </button>
-    <button class="scan-option" onclick="beginScan('QR')">
-      <div class="scan-icon">▦</div>
-      <div class="scan-option-title">QR Code</div>
-    </button>
-  </div>`);
+    <div id="scanner-status" class="scanner-status">啟動相機中...</div>
+    <button class="secondary-btn" onclick="stopQRScan();showScanChoice()">取消掃描</button>
+  </div>
+  `);
+
+  try {
+    qrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' }
+    });
+    const video = document.getElementById('qr-video');
+    if (!video) return;
+
+    video.srcObject = qrStream;
+    await video.play();
+
+    qrScannerRunning = true;
+
+    // 檢查是否有原生 BarcodeDetector 支援 (大部分 Android Chrome 支援)
+    if ('BarcodeDetector' in window) {
+      try {
+        qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      } catch (e) {
+        qrDetector = null;
+      }
+    }
+
+    const statusEl = document.getElementById('scanner-status');
+    if (statusEl) statusEl.textContent = '尋找 QR Code 中...';
+
+    // 建立 Canvas 用於 jsQR (iOS/Fallback 使用)
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    const scanFrame = async () => {
+      if (!qrScannerRunning) return;
+
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        let qrCodeValue = null;
+
+        // 1. 優先使用原生 BarcodeDetector API
+        if (qrDetector) {
+          try {
+            const barcodes = await qrDetector.detect(video);
+            if (barcodes.length > 0) {
+              qrCodeValue = barcodes[0].rawValue;
+            }
+          } catch (e) {
+            console.warn('BarcodeDetector 執行失敗，切換至 jsQR', e);
+            qrDetector = null; // 降級至 jsQR
+          }
+        }
+
+        // 2. 如果無原生支援或失敗（如 iOS Safari），使用 jsQR 解析
+        if (!qrCodeValue && !qrDetector && typeof jsQR !== 'undefined') {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert'
+          });
+          if (code) {
+            qrCodeValue = code.data;
+          }
+        }
+
+        // 若成功解析出點位資料
+        if (qrCodeValue) {
+          stopQRScan();
+          openScannedPoint(qrCodeValue, 'QR');
+          return;
+        }
+      }
+
+      qrAnimationFrame = requestAnimationFrame(scanFrame);
+    };
+
+    qrAnimationFrame = requestAnimationFrame(scanFrame);
+
+  } catch (error) {
+    showScannerError('無法存取相機：' + (error.message || error) + '。請確認已授予相機權限。');
+  }
 }
 
-/* 核心進入點：beginScan */
-async function beginScan(method) {
-  currentMethod = method;
-  stopAllScanning();
-  if (method === 'NFC') {
-    await startNFCScan();
-  } else if (method === 'QR') {
-    await startQRScan();
+function stopQRScan() {
+  qrScannerRunning = false;
+  if (qrAnimationFrame) {
+    cancelAnimationFrame(qrAnimationFrame);
+    qrAnimationFrame = null;
+  }
+  if (qrStream) {
+    qrStream.getTracks().forEach(track => track.stop());
+    qrStream = null;
   }
 }
 
 function stopAllScanning() {
   stopQRScan();
   stopNFCScan();
-}
-
-function showScannerError(msg) {
-  const el = document.getElementById('scanner-error-msg');
-  if (el) el.textContent = msg; else alert(msg);
-}
-
-/* 跨平台通用：處理 QR/NFC 掃描結果並切換點位 */
-function handleScannedResult(scannedData, method) {
-  const cleanedData = String(scannedData || '').trim();
-  const matchedPoint = points.find(
-    p => String(p.pointID).trim() === cleanedData ||
-         String(p.qrCode || '').trim() === cleanedData
-  );
-
-  if (matchedPoint) {
-    selectPoint(matchedPoint.pointID);
-  } else {
-    alert(`找不到對應的巡檢點位：${cleanedData}`);
-    showScanChoice();
-  }
-}
-
-/* QR Code 掃描器 (支援 iOS/Android 全平台，自動跳轉不黑屏) */
-async function startQRScan() {
-  app(`
-  <div class="page scanner-page">
-    <button class="back-btn" onclick="stopQRScan(); showScanChoice()">← 返回</button>
-    <div class="scanner-title">QR Code 掃描</div>
-    <div class="scanner-description">將巡檢點 QR Code 對準鏡頭</div>
-    <div class="scanner-box" id="qr-reader"></div>
-    <div id="scanner-error-msg" class="scanner-error"></div>
-    <button class="secondary-btn" onclick="stopQRScan(); showScanChoice()">取消掃描</button>
-  </div>`);
-
-  try {
-    html5QrScanner = new Html5Qrcode("qr-reader");
-    await html5QrScanner.start(
-      { facingMode: "environment" },
-      { 
-        fps: 10, 
-        qrbox: { width: 220, height: 220 },
-        aspectRatio: 1.0
-      },
-      async (decodedText) => {
-        await stopQRScan();
-        handleScannedResult(decodedText, 'QR');
-      },
-      () => {}
-    );
-  } catch (err) {
-    showScannerError("開啟相機失敗：請確認使用 HTTPS 連線並已允許相機權限。");
-  }
-}
-
-async function stopQRScan() {
-  if (html5QrScanner) {
-    try {
-      await html5QrScanner.stop();
-      html5QrScanner.clear();
-    } catch (e) {
-      // 捕捉未完全啟動前關閉的 Promise 異常
-    } finally {
-      html5QrScanner = null;
-    }
-  }
-}
-
-/* NFC 掃描器 (包含 iOS 阻擋邏輯) */
-async function startNFCScan() {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  
-  app(`
-  <div class="page scanner-page">
-    <button class="back-btn" onclick="stopNFCScan(); showScanChoice()">← 返回</button>
-    <div class="scanner-title">NFC 掃描</div>
-    <div class="card" style="text-align:center;padding:32px 18px">
-      <div style="font-size:70px">📳</div>
-      <div id="scanner-status" class="scanner-status" style="margin-top:8px">正在啟動 NFC...</div>
-      <div id="scanner-error-msg" class="scanner-error"></div>
-    </div>
-    <button class="secondary-btn" onclick="stopNFCScan(); showScanChoice()">取消掃描</button>
-  </div>`);
-
-  if (isIOS || !('NDEFReader' in window)) {
-    showScannerError('iOS 系統限制網頁存取 NFC，請改用 QR Code！');
-    return;
-  }
-
-  try {
-    nfcReader = new NDEFReader();
-    nfcAbortController = new AbortController();
-    await nfcReader.scan({ signal: nfcAbortController.signal });
-    document.getElementById('scanner-status').textContent = 'NFC 已啟動，請靠近 Tag';
-    nfcReader.onreading = event => {
-      stopNFCScan();
-      // 解析 Tag 文字並跳轉
-      let pointID = null;
-      for (const record of event.message.records) {
-        if (record.recordType === "text") {
-          const textDecoder = new TextDecoder(record.encoding);
-          pointID = textDecoder.decode(record.data);
-          break;
-        }
-      }
-      handleScannedResult(pointID || '', 'NFC');
-    };
-  } catch (error) {
-    showScannerError('NFC 啟動失敗：' + error.message);
-  }
 }
 
 function stopNFCScan() {
@@ -509,6 +716,50 @@ function stopNFCScan() {
   }
   nfcReader = null;
 }
+
+function showScannerError(msg) {
+  const status = document.getElementById('scanner-status');
+  if (status) {
+    status.innerHTML = `<span class="scanner-error">${esc(msg)}</span>`;
+  } else {
+    alert(msg);
+  }
+}
+
+function openScannedPoint(pointID, method) {
+  alert(`成功讀取點位 [${method}]：${pointID}`);
+  // TODO: 繼續處理跳轉至該點位的檢核邏輯
+}
+
+/* 預設開啟首頁範例 (實際依你的需求運作) */
+function showScanChoice() {
+  app(`
+  <div class="page">
+    <div class="scan-title">
+      <div class="title">掃描巡檢點位</div>
+      <div class="scan-point">請選擇掃描方式</div>
+    </div>
+    <button class="scan-option" onclick="beginScan('QR')">
+      <div class="scan-icon">▦</div>
+      <div class="scan-option-title">QR Code</div>
+      <div class="scan-option-description">使用手機相機掃描 QR Code</div>
+    </button>
+  </div>
+  `);
+}
+
+async function beginScan(method) {
+  stopAllScanning();
+  if (method === 'QR') {
+    await startQRScan();
+  }
+}
+
+// 頁面初次載入
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('loadingOverlay').classList.add('is-hidden');
+  showScanChoice();
+});
 </script>
 </body>
 </html>
