@@ -650,6 +650,79 @@ select {
   margin-bottom: 2px;
 }
 /* =====================================================
+   Global Loading Overlay
+   ===================================================== */
+#loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(245, 246, 248, .88);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+#loadingOverlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.loading-panel {
+  width: min(100%, 300px);
+  padding: 28px 22px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+  text-align: center;
+}
+.loading-spinner {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 18px;
+  border: 5px solid #e5e7eb;
+  border-top-color: #222;
+  border-right-color: #555;
+  border-radius: 50%;
+  animation: loading-spin .78s linear infinite;
+}
+.loading-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #202124;
+}
+.loading-message {
+  margin-top: 7px;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.loading-dots::after {
+  content: '';
+  display: inline-block;
+  width: 1.4em;
+  text-align: left;
+  animation: loading-dots 1.25s steps(4, end) infinite;
+}
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes loading-dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75%, 100% { content: '...'; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner, .loading-dots::after { animation-duration: 2.5s; }
+  #loadingOverlay { transition: none; }
+}
+
+/* =====================================================
    Responsive
    ===================================================== */
 @media (min-width: 700px) {
@@ -689,6 +762,14 @@ select {
 </head>
 <body>
 <div id="app"></div>
+<!-- 頁面初始載入遮罩：即使 API 尚未回應，也會先顯示動畫 -->
+<div id="loadingOverlay" role="status" aria-live="polite" aria-atomic="true">
+  <div class="loading-panel">
+    <div class="loading-spinner" aria-hidden="true"></div>
+    <div class="loading-title">太陽能系統巡檢</div>
+    <div id="loadingMessage" class="loading-message">正在連線並載入巡檢資料<span class="loading-dots"></span></div>
+  </div>
+</div>
 <div id="bottomNav"
 class="bottom-nav"
 style="display:none">
@@ -731,35 +812,71 @@ let qrDetector = null;
 let qrScannerRunning = false;
 let qrAnimationFrame = null;
 /* =====================================================
+   Global Loading State
+   ===================================================== */
+let loadingCount = 0;
+let initialLoading = true;
+let loadingMessageText = '正在載入資料';
+function renderLoadingState() {
+  const overlay = document.getElementById('loadingOverlay');
+  const message = document.getElementById('loadingMessage');
+  if (!overlay) return;
+  if (message) {
+    message.innerHTML = `${esc(loadingMessageText)}<span class="loading-dots"></span>`;
+  }
+  const shouldShow = initialLoading || loadingCount > 0;
+  overlay.classList.toggle('is-hidden', !shouldShow);
+  overlay.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+}
+function showLoading(message = '正在載入資料') {
+  loadingCount++;
+  loadingMessageText = message;
+  renderLoadingState();
+}
+function hideLoading() {
+  loadingCount = Math.max(0, loadingCount - 1);
+  renderLoadingState();
+}
+function finishInitialLoading() {
+  initialLoading = false;
+  renderLoadingState();
+}
+
+/* =====================================================
    Server
    ===================================================== */
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbySwcWW5i0s9LJOJWSah51PNDZ7fzGTh_qvxZPk3jks3uT_FgHjVP1BVLSufqalRkQDbg/exec';
 async function runServer(name, ...args) {
-  let response;
+  showLoading('正在與巡檢系統連線');
   try {
-    response = await fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ action: name, args })
-    });
-  } catch (error) {
-    throw new Error(
-      '無法連線到巡檢 API。若開發者工具顯示 CORS，代表 Apps Script 不允許 GitHub Pages 讀取回應；這不是帳號或相機權限問題。原始錯誤：' + (error?.message || error)
-    );
+    let response;
+    try {
+      response = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: name, args })
+      });
+    } catch (error) {
+      throw new Error(
+        '無法連線到巡檢 API。若開發者工具顯示 CORS，代表 Apps Script 不允許 GitHub Pages 讀取回應；這不是帳號或相機權限問題。原始錯誤：' + (error?.message || error)
+      );
+    }
+    if (!response.ok) {
+      throw new Error('巡檢 API 回應 HTTP ' + response.status);
+    }
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      throw new Error('API 回應不是有效 JSON，請確認 Apps Script 部署版本。');
+    }
+    if (!payload.success) {
+      throw new Error(payload.error || '巡檢 API 執行失敗');
+    }
+    return payload.data;
+  } finally {
+    hideLoading();
   }
-  if (!response.ok) {
-    throw new Error('巡檢 API 回應 HTTP ' + response.status);
-  }
-  let payload;
-  try {
-    payload = await response.json();
-  } catch (error) {
-    throw new Error('API 回應不是有效 JSON，請確認 Apps Script 部署版本。');
-  }
-  if (!payload.success) {
-    throw new Error(payload.error || '巡檢 API 執行失敗');
-  }
-  return payload.data;
 }
 /* =====================================================
    Init
@@ -1263,13 +1380,18 @@ function showScanChoice() {
 async function beginScan(method) {
   currentMethod = method;
   stopAllScanning();
-  if (method === 'NFC') {
-    await startNFCScan();
-    return;
-  }
-  if (method === 'QR') {
-    await startQRScan();
-    return;
+  showLoading(method === 'NFC' ? '正在啟動 NFC 掃描' : '正在啟動相機與 QR 掃描器');
+  try {
+    if (method === 'NFC') {
+      await startNFCScan();
+      return;
+    }
+    if (method === 'QR') {
+      await startQRScan();
+      return;
+    }
+  } finally {
+    hideLoading();
   }
 }
 /* =====================================================
@@ -2427,6 +2549,14 @@ async function loadHistory() {
     document.getElementById(
       'filter-result'
     ).value;
+  const box = document.getElementById('history-list');
+  if (box) {
+    box.innerHTML = `
+      <div class="card" style="text-align:center;color:#777">
+        正在查詢巡檢記錄……
+      </div>
+    `;
+  }
   const rows =
     await runServer(
       'getHistory',
@@ -2435,10 +2565,6 @@ async function loadHistory() {
         pointID,
         result
       }
-    );
-  const box =
-    document.getElementById(
-      'history-list'
     );
   if (!rows.length) {
     box.innerHTML = `
@@ -2860,16 +2986,20 @@ function checkScanURL() {
 const originalInit = init;
 init = async function() {
   checkScanURL();
-  await originalInit();
-  if (
-    window.pendingScan &&
-    currentInspector
-  ) {
-    openScannedPoint(
-      window.pendingScan.pointID,
-      window.pendingScan.method
-    );
-    window.pendingScan = null;
+  try {
+    await originalInit();
+    if (
+      window.pendingScan &&
+      currentInspector
+    ) {
+      openScannedPoint(
+        window.pendingScan.pointID,
+        window.pendingScan.method
+      );
+      window.pendingScan = null;
+    }
+  } finally {
+    finishInitialLoading();
   }
 };
 init();
